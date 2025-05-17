@@ -3,8 +3,7 @@
 import { createServerClient } from "@/lib/supabase"
 import { getUser } from "@/app/actions/auth"
 import { revalidatePath } from "next/cache"
-
-export type NotificationType = "comment" | "mention" | "vote" | "bookmark" | "follow" | "system"
+import type { NotificationType } from "@/types/notifications"
 
 export async function createNotification(
   userId: string,

@@ -138,6 +138,7 @@ export async function logout() {
   }
 }
 
+// Make sure getUser is explicitly marked as async
 export async function getUser() {
   try {
     const supabase = createServerClient()

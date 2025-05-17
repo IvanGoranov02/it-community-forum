@@ -2,6 +2,7 @@
 
 import { createServerClient } from "@/lib/supabase"
 
+// Make sure all these functions are explicitly marked as async
 export async function getTags() {
   const supabase = createServerClient()
 
