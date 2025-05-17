@@ -11,6 +11,9 @@ import { notFound } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 interface ProfilePageProps {
   params: {
     username: string

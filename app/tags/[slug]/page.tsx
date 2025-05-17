@@ -11,6 +11,9 @@ import { getUser } from "@/app/actions/auth"
 import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions/notifications"
 import { notFound } from "next/navigation"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 interface TagPageProps {
   params: {
     slug: string

@@ -6,6 +6,9 @@ import { SearchBar } from "@/components/search-bar"
 import { ChevronLeft } from "lucide-react"
 import { searchPosts } from "@/lib/api"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 interface SearchPageProps {
   searchParams: {
     q?: string

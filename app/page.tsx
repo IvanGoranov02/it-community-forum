@@ -7,10 +7,13 @@ import { ForumPost } from "@/components/forum-post"
 import { SearchBar } from "@/components/search-bar"
 import { UserMenu } from "@/components/user-menu"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
-import { TagIcon } from "lucide-react"
+import { TagIcon, Bug, LogIn } from "lucide-react"
 import { getUser } from "@/app/actions/auth"
 import { getCategories, getRecentPosts, getPopularPosts } from "@/lib/api"
 import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions/notifications"
+
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
 
 export default async function Home() {
   const user = await getUser()
@@ -47,6 +50,18 @@ export default async function Home() {
           <Button variant="outline" className="flex items-center gap-2">
             <TagIcon className="h-4 w-4" />
             Browse Tags
+          </Button>
+        </Link>
+        <Link href="/debug/sql-create-user">
+          <Button variant="outline" className="flex items-center gap-2">
+            <Bug className="h-4 w-4" />
+            Create Test User
+          </Button>
+        </Link>
+        <Link href="/simple-login">
+          <Button variant="outline" className="flex items-center gap-2">
+            <LogIn className="h-4 w-4" />
+            Simple Login
           </Button>
         </Link>
         {user && (

@@ -5,6 +5,9 @@ import { redirect } from "next/navigation"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 export default async function EditProfilePage() {
   const user = await getUser()
 

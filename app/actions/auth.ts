@@ -1,9 +1,12 @@
 "use server"
 
 import { cookies } from "next/headers"
-import { redirect } from "next/navigation"
 import { createServerClient } from "@/lib/supabase"
 import { generateUsername } from "@/lib/utils"
+import { revalidatePath } from "next/cache"
+
+// Mark this function as dynamic
+export const dynamic = "force-dynamic"
 
 export async function register(formData: FormData) {
   const name = formData.get("name") as string
@@ -14,133 +17,174 @@ export async function register(formData: FormData) {
     return { error: "All fields are required" }
   }
 
-  const supabase = createServerClient()
+  try {
+    const supabase = createServerClient()
+    const username = generateUsername(email)
 
-  // Check if user already exists
-  const { data: existingUser } = await supabase
-    .from("profiles")
-    .select("id")
-    .eq("username", generateUsername(email))
-    .maybeSingle()
+    // Check if username is already taken
+    const { data: existingUser, error: checkError } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("username", username)
+      .maybeSingle()
 
-  if (existingUser) {
-    return { error: "User already exists" }
-  }
+    if (checkError) {
+      return { error: "Error checking username availability" }
+    }
 
-  // Create the user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: {
-        full_name: name,
+    if (existingUser) {
+      return { error: "Username is already taken" }
+    }
+
+    // Create the user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: name,
+        },
       },
-    },
-  })
-
-  if (authError || !authData.user) {
-    return { error: authError?.message || "Failed to create user" }
-  }
-
-  // Create the profile
-  const { error: profileError } = await supabase.from("profiles").insert({
-    id: authData.user.id,
-    username: generateUsername(email),
-    full_name: name,
-  })
-
-  if (profileError) {
-    return { error: profileError.message }
-  }
-
-  // Set the auth cookie
-  const { data: sessionData } = await supabase.auth.getSession()
-
-  if (sessionData?.session) {
-    cookies().set("supabase-auth", JSON.stringify(sessionData.session), {
-      path: "/",
-      maxAge: 60 * 60 * 24 * 7, // 1 week
     })
-  }
 
-  redirect("/")
+    if (authError || !authData.user) {
+      console.error("Auth error during registration:", authError)
+      return { error: authError?.message || "Failed to create user" }
+    }
+
+    // Create the profile
+    const { error: profileError } = await supabase.from("profiles").insert({
+      id: authData.user.id,
+      username,
+      full_name: name,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    })
+
+    if (profileError) {
+      console.error("Profile error during registration:", profileError)
+      return { error: profileError.message }
+    }
+
+    // Set the auth cookie
+    const { data: sessionData } = await supabase.auth.getSession()
+
+    if (sessionData?.session) {
+      cookies().set("supabase-auth", JSON.stringify(sessionData.session), {
+        path: "/",
+        maxAge: 60 * 60 * 24 * 7, // 1 week
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      })
+    }
+
+    revalidatePath("/")
+    return { success: true }
+  } catch (error) {
+    console.error("Unexpected error during registration:", error)
+    return { error: "An unexpected error occurred during registration" }
+  }
 }
 
 export async function login(formData: FormData) {
-  const email = formData.get("email") as string
-  const password = formData.get("password") as string
+  try {
+    const email = formData.get("email") as string
+    const password = formData.get("password") as string
 
-  if (!email || !password) {
-    return { error: "Email and password are required" }
+    if (!email || !password) {
+      return { error: "Email and password are required" }
+    }
+
+    const supabase = createServerClient()
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error || !data.session) {
+      console.error("Login error:", error)
+      return { error: error?.message || "Invalid email or password" }
+    }
+
+    // Set the auth cookie
+    cookies().set("supabase-auth", JSON.stringify(data.session), {
+      path: "/",
+      maxAge: 60 * 60 * 24 * 7, // 1 week
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+    })
+
+    revalidatePath("/")
+    return { success: true }
+  } catch (error) {
+    console.error("Unexpected login error:", error)
+    return { error: "An unexpected error occurred during login" }
   }
-
-  const supabase = createServerClient()
-
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
-
-  if (error || !data.session) {
-    return { error: error?.message || "Invalid email or password" }
-  }
-
-  // Set the auth cookie
-  cookies().set("supabase-auth", JSON.stringify(data.session), {
-    path: "/",
-    maxAge: 60 * 60 * 24 * 7, // 1 week
-  })
-
-  redirect("/")
 }
 
 export async function logout() {
-  const supabase = createServerClient()
-  await supabase.auth.signOut()
-  cookies().delete("supabase-auth")
-  redirect("/")
+  try {
+    const supabase = createServerClient()
+    await supabase.auth.signOut()
+    cookies().delete("supabase-auth")
+    revalidatePath("/")
+    return { success: true }
+  } catch (error) {
+    console.error("Logout error:", error)
+    return { error: "An error occurred during logout" }
+  }
 }
 
 export async function getUser() {
-  const supabase = createServerClient()
-  const cookieStore = cookies()
-  const authCookie = cookieStore.get("supabase-auth")
-
-  if (!authCookie?.value) {
-    return null
-  }
-
   try {
-    const session = JSON.parse(authCookie.value)
+    const supabase = createServerClient()
+    const cookieStore = cookies()
+    const authCookie = cookieStore.get("supabase-auth")
 
-    if (!session?.access_token) {
+    if (!authCookie?.value) {
       return null
     }
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser(session.access_token)
+    try {
+      const session = JSON.parse(authCookie.value)
 
-    if (!user) {
+      if (!session?.access_token) {
+        return null
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser(session.access_token)
+
+      if (!user) {
+        return null
+      }
+
+      // Get the user profile
+      const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+
+      if (!profile) {
+        return null
+      }
+
+      return {
+        id: user.id,
+        email: user.email,
+        name: profile.full_name || profile.username,
+        username: profile.username,
+        avatar: profile.avatar_url,
+        role: profile.role,
+      }
+    } catch (parseError) {
+      console.error("Error parsing auth cookie:", parseError)
+      cookies().delete("supabase-auth")
       return null
     }
-
-    // Get the user profile
-    const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-    if (!profile) {
-      return null
-    }
-
-    return {
-      id: user.id,
-      email: user.email,
-      name: profile.full_name || profile.username,
-      username: profile.username,
-      avatar: profile.avatar_url,
-      role: profile.role,
-    }
-  } catch {
+  } catch (error) {
+    console.error("Error getting user:", error)
     return null
   }
 }

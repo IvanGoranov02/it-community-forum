@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -8,27 +9,66 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import Link from "next/link"
 import { ChevronLeft } from "lucide-react"
-import { getCategories } from "@/lib/api"
-import { getUser } from "@/app/actions/auth"
-import { getTags } from "@/app/actions/tags"
+import { createBrowserClient } from "@/lib/supabase"
 import { TagInput } from "@/components/tag-input"
 import { createPostWithTags } from "@/app/actions/posts"
-import { redirect } from "next/navigation"
+import { useRouter } from "next/navigation"
+import { useAuth } from "@/app/context/auth-context"
 
-export default async function NewPostPage({
-  searchParams,
-}: {
-  searchParams: { category?: string }
-}) {
-  const user = await getUser()
+export default function NewPostPage() {
+  const [categories, setCategories] = useState([])
+  const [tags, setTags] = useState([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [selectedTags, setSelectedTags] = useState([])
+  const router = useRouter()
+  const { user } = useAuth()
 
-  if (!user) {
-    redirect("/login?redirect=/new-post")
+  useEffect(() => {
+    // Redirect if not logged in
+    if (!user && !isLoading) {
+      router.push("/login?redirect=/new-post")
+    }
+  }, [user, isLoading, router])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true)
+      const supabase = createBrowserClient()
+
+      // Fetch categories
+      const { data: categoriesData } = await supabase.from("categories").select("*").order("name")
+      setCategories(categoriesData || [])
+
+      // Fetch tags
+      const { data: tagsData } = await supabase.from("tags").select("*").order("name")
+      setTags(tagsData || [])
+
+      setIsLoading(false)
+    }
+
+    fetchData()
+  }, [])
+
+  const handleTagChange = (tags) => {
+    setSelectedTags(tags)
+    // Update hidden input
+    const tagsInput = document.getElementById("tags-input") as HTMLInputElement
+    if (tagsInput) {
+      tagsInput.value = JSON.stringify(tags.map((tag) => tag.id))
+    }
   }
 
-  const categories = await getCategories()
-  const tags = await getTags()
-  const selectedCategory = searchParams.category || ""
+  if (isLoading) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="text-center py-12">Loading...</div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null // Will redirect in useEffect
+  }
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -54,7 +94,7 @@ export default async function NewPostPage({
             </div>
             <div className="space-y-2">
               <Label htmlFor="category">Category</Label>
-              <Select name="category" defaultValue={selectedCategory} required>
+              <Select name="category" required>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
@@ -69,16 +109,7 @@ export default async function NewPostPage({
             </div>
             <div className="space-y-2">
               <Label htmlFor="tags">Tags</Label>
-              <TagInput
-                availableTags={tags}
-                onChange={(selectedTags) => {
-                  // This will be handled client-side
-                  const tagsInput = document.getElementById("tags-input") as HTMLInputElement
-                  if (tagsInput) {
-                    tagsInput.value = JSON.stringify(selectedTags.map((tag) => tag.id))
-                  }
-                }}
-              />
+              <TagInput availableTags={tags} onChange={handleTagChange} />
               <input type="hidden" id="tags-input" name="tags" />
             </div>
             <div className="space-y-2">

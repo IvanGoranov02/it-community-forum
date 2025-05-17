@@ -10,6 +10,9 @@ import { getTags } from "@/app/actions/tags"
 import { getUser } from "@/app/actions/auth"
 import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions/notifications"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 export default async function TagsPage() {
   const user = await getUser()
   const tags = await getTags()

@@ -18,6 +18,9 @@ import { getPostTags } from "@/app/actions/tags"
 import { PostTags } from "@/components/post-tags"
 import { PostContent } from "@/components/post-content"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 interface PostPageProps {
   params: {
     slug: string

@@ -7,6 +7,9 @@ import { getBookmarkedPosts } from "@/app/actions/bookmarks"
 import { getUser } from "@/app/actions/auth"
 import { redirect } from "next/navigation"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 export default async function BookmarksPage() {
   const user = await getUser()
 

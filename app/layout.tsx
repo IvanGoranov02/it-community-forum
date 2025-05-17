@@ -5,6 +5,9 @@ import { AuthProvider } from "@/app/context/auth-context"
 import { getUser } from "@/app/actions/auth"
 import "./globals.css"
 
+// Mark this layout as dynamic
+export const dynamic = "force-dynamic"
+
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {

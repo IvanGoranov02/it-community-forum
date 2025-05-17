@@ -7,6 +7,9 @@ import { getUser } from "@/app/actions/auth"
 import { redirect } from "next/navigation"
 import { formatDate } from "@/lib/utils"
 
+// Mark this page as dynamic
+export const dynamic = "force-dynamic"
+
 export default async function NotificationsPage() {
   const user = await getUser()
 
