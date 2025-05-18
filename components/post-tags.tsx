@@ -21,8 +21,11 @@ export function PostTags({ tags }: PostTagsProps) {
     <div className="flex flex-wrap gap-2 mt-2">
       {tags.map((tag) => (
         <Link key={tag.id} href={`/tags/${tag.slug}`}>
-          <Badge variant="outline" className="flex items-center gap-1 hover:bg-secondary">
-            <TagIcon className="h-3 w-3" />
+          <Badge
+            variant="outline"
+            className="flex items-center gap-1 hover:bg-primary/10 transition-colors border-primary/30"
+          >
+            <TagIcon className="h-3 w-3 text-primary/70" />
             {tag.name}
           </Badge>
         </Link>

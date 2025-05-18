@@ -13,8 +13,20 @@ export function PostContent({ content }: PostContentProps) {
   useEffect(() => {
     // Process mentions
     const highlighted = highlightMentions(content)
-    setFormattedContent(highlighted)
+
+    // Convert URLs to links
+    const withLinks = highlighted.replace(
+      /(https?:\/\/[^\s]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline">$1</a>',
+    )
+
+    setFormattedContent(withLinks)
   }, [content])
 
-  return <div className="prose dark:prose-invert max-w-none" dangerouslySetInnerHTML={{ __html: formattedContent }} />
+  return (
+    <div
+      className="prose dark:prose-invert max-w-none prose-headings:text-primary prose-a:text-primary"
+      dangerouslySetInnerHTML={{ __html: formattedContent }}
+    />
+  )
 }

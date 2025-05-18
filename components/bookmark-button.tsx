@@ -45,6 +45,7 @@ export function BookmarkButton({ postId, initialBookmarked }: BookmarkButtonProp
       onClick={handleToggleBookmark}
       disabled={isLoading}
       title={isBookmarked ? "Remove bookmark" : "Bookmark this post"}
+      className={isBookmarked ? "text-yellow-600 dark:text-yellow-400" : ""}
     >
       <Bookmark className={`h-4 w-4 ${isBookmarked ? "fill-current" : ""}`} />
     </Button>

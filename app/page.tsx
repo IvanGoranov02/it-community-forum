@@ -7,7 +7,7 @@ import { ForumPost } from "@/components/forum-post"
 import { SearchBar } from "@/components/search-bar"
 import { UserMenu } from "@/components/user-menu"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
-import { TagIcon, Bug, LogIn } from "lucide-react"
+import { TagIcon, Bug, LogIn, PlusCircle, TrendingUp, Clock } from "lucide-react"
 import { getUser } from "@/app/actions/auth"
 import { getCategories, getRecentPosts, getPopularPosts } from "@/lib/api"
 import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions/notifications"
@@ -25,11 +25,13 @@ export default async function Home() {
   const notifications = user ? await getUserNotifications(10) : []
   const unreadCount = user ? await getUnreadNotificationsCount() : 0
 
+  console.log("Categories with counts:", categories)
+
   return (
     <div className="container mx-auto px-4 py-6">
-      <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+      <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 bg-muted/30 p-6 rounded-lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">TechTalk Forum</h1>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">TechTalk Forum</h1>
           <p className="text-muted-foreground mt-1">A community for IT professionals and enthusiasts</p>
         </div>
         <div className="flex items-center gap-4 w-full md:w-auto">
@@ -45,37 +47,49 @@ export default async function Home() {
         </div>
       </header>
 
-      <div className="flex items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-4 mb-6">
         <Link href="/tags">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
             <TagIcon className="h-4 w-4" />
             Browse Tags
           </Button>
         </Link>
         <Link href="/debug/sql-create-user">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
             <Bug className="h-4 w-4" />
             Create Test User
           </Button>
         </Link>
         <Link href="/simple-login">
-          <Button variant="outline" className="flex items-center gap-2">
+          <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
             <LogIn className="h-4 w-4" />
             Simple Login
           </Button>
         </Link>
         {user && (
           <Link href="/new-post">
-            <Button>Create Post</Button>
+            <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
+              <PlusCircle className="h-4 w-4" />
+              Create Post
+            </Button>
           </Link>
         )}
       </div>
 
       <Tabs defaultValue="categories" className="mb-8">
         <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="categories">Categories</TabsTrigger>
-          <TabsTrigger value="recent">Recent Posts</TabsTrigger>
-          <TabsTrigger value="popular">Popular</TabsTrigger>
+          <TabsTrigger value="categories" className="flex items-center gap-2">
+            <TagIcon className="h-4 w-4" />
+            Categories
+          </TabsTrigger>
+          <TabsTrigger value="recent" className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            Recent Posts
+          </TabsTrigger>
+          <TabsTrigger value="popular" className="flex items-center gap-2">
+            <TrendingUp className="h-4 w-4" />
+            Popular
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="categories">
           <div className="grid gap-6">
@@ -88,6 +102,8 @@ export default async function Home() {
                 icon={category.icon || "Code"}
                 color={category.color || "bg-gray-100 dark:bg-gray-900"}
                 slug={category.slug}
+                postCount={category.postCount || 0}
+                userCount={category.userCount || 0}
               />
             ))}
           </div>
@@ -151,7 +167,7 @@ export default async function Home() {
       </Tabs>
 
       {!user ? (
-        <Card>
+        <Card className="border-t-4 border-t-primary">
           <CardHeader>
             <CardTitle>Join the Discussion</CardTitle>
             <CardDescription>
@@ -161,41 +177,41 @@ export default async function Home() {
           <CardContent>
             <div className="flex flex-col md:flex-row gap-4">
               <Link href="/register" className="w-full md:w-auto">
-                <Button className="w-full">Register Now</Button>
+                <Button className="w-full bg-primary hover:bg-primary/90">Register Now</Button>
               </Link>
               <Link href="/login" className="w-full md:w-auto">
-                <Button variant="outline" className="w-full">
+                <Button variant="outline" className="w-full hover:bg-primary/10">
                   Sign In
                 </Button>
               </Link>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between text-sm text-muted-foreground">
+          <CardFooter className="flex justify-between text-sm text-muted-foreground bg-muted/20">
             <p>Join our growing community</p>
-            <Link href="/about" className="hover:underline">
+            <Link href="/about" className="hover:underline hover:text-primary transition-colors">
               Learn more
             </Link>
           </CardFooter>
         </Card>
       ) : (
-        <Card>
+        <Card className="border-t-4 border-t-primary">
           <CardHeader>
             <CardTitle>Welcome back, {user.name}!</CardTitle>
             <CardDescription>Stay updated with the latest discussions in the IT community.</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col md:flex-row gap-4">
             <Link href="/new-post" className="w-full md:w-auto">
-              <Button className="w-full">Create New Post</Button>
+              <Button className="w-full bg-primary hover:bg-primary/90">Create New Post</Button>
             </Link>
             <Link href="/my-posts" className="w-full md:w-auto">
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full hover:bg-primary/10">
                 My Posts
               </Button>
             </Link>
           </CardContent>
-          <CardFooter className="flex justify-between text-sm text-muted-foreground">
+          <CardFooter className="flex justify-between text-sm text-muted-foreground bg-muted/20">
             <p>Share your knowledge with the community</p>
-            <Link href="/guidelines" className="hover:underline">
+            <Link href="/guidelines" className="hover:underline hover:text-primary transition-colors">
               Posting guidelines
             </Link>
           </CardFooter>

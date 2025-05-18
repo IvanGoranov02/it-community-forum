@@ -33,11 +33,16 @@ export function SearchBar({ className }: SearchBarProps) {
       <Input
         type="search"
         placeholder="Search forums..."
-        className="pl-8"
+        className="pl-8 focus-visible:ring-primary"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         disabled={isPending}
       />
+      {isPending && (
+        <div className="absolute right-2.5 top-2.5 h-4 w-4">
+          <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-primary"></div>
+        </div>
+      )}
     </form>
   )
 }

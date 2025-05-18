@@ -49,16 +49,19 @@ export function ForumPost({
   }
 
   return (
-    <Card className="transition-all hover:shadow-md cursor-pointer" onClick={handleCardClick}>
+    <Card
+      className="transition-all hover:shadow-md cursor-pointer border-l-4 border-l-primary/70 hover:border-l-primary"
+      onClick={handleCardClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           <Avatar className="h-10 w-10 border">
             <AvatarImage src={`/abstract-geometric-shapes.png?height=40&width=40&query=${author}`} alt={author} />
             <AvatarFallback>{author.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <div className="space-y-1">
+          <div className="space-y-1 flex-1">
             <div className="flex items-center gap-2">
-              <h3 className="font-semibold hover:underline">{title}</h3>
+              <h3 className="font-semibold text-lg hover:text-primary transition-colors">{title}</h3>
               {isHot && (
                 <Badge
                   variant="outline"
@@ -70,29 +73,35 @@ export function ForumPost({
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link href={`/profile/${author}`} className="hover:underline" onClick={(e) => e.stopPropagation()}>
+              <Link
+                href={`/profile/${author}`}
+                className="hover:underline hover:text-primary"
+                onClick={(e) => e.stopPropagation()}
+              >
                 by {author}
               </Link>
               <span>•</span>
               <Link href={`/category/${categoryId}`} onClick={(e) => e.stopPropagation()}>
-                <Badge variant="secondary">{category}</Badge>
+                <Badge variant="secondary" className="hover:bg-secondary/80">
+                  {category}
+                </Badge>
               </Link>
             </div>
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between text-sm text-muted-foreground p-4 pt-0">
+      <CardFooter className="flex justify-between text-sm text-muted-foreground p-4 pt-0 bg-muted/20">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1">
-            <ThumbsUp className="h-4 w-4" />
+            <ThumbsUp className="h-4 w-4 text-primary/70" />
             <span>{votes} votes</span>
           </div>
           <div className="flex items-center gap-1">
-            <MessageSquare className="h-4 w-4" />
+            <MessageSquare className="h-4 w-4 text-primary/70" />
             <span>{replies} replies</span>
           </div>
           <div className="flex items-center gap-1">
-            <Eye className="h-4 w-4" />
+            <Eye className="h-4 w-4 text-primary/70" />
             <span>{views} views</span>
           </div>
         </div>

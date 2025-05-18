@@ -1,57 +1,53 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Badge } from "@/components/ui/badge"
+import { Check, X, ChevronsUpDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { X, TagIcon } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Badge } from "@/components/ui/badge"
 
 interface Tag {
   id: string
   name: string
-  slug: string
+  description?: string
 }
 
 interface TagInputProps {
-  initialTags?: Tag[]
   availableTags: Tag[]
-  onChange: (tags: Tag[]) => void
+  onChange?: (selectedTags: Tag[]) => void
+  defaultSelectedTags?: Tag[]
 }
 
-export function TagInput({ initialTags = [], availableTags, onChange }: TagInputProps) {
-  const [selectedTags, setSelectedTags] = useState<Tag[]>(initialTags)
-  const [inputValue, setInputValue] = useState("")
-  const [filteredTags, setFilteredTags] = useState<Tag[]>([])
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const { toast } = useToast()
+export function TagInput({ availableTags, onChange, defaultSelectedTags = [] }: TagInputProps) {
+  const [open, setOpen] = useState(false)
+  const [selectedTags, setSelectedTags] = useState<Tag[]>(defaultSelectedTags)
 
   useEffect(() => {
-    if (inputValue.trim() === "") {
-      setFilteredTags([])
-    } else {
-      const filtered = availableTags.filter(
-        (tag) =>
-          tag.name.toLowerCase().includes(inputValue.toLowerCase()) &&
-          !selectedTags.some((selected) => selected.id === tag.id),
-      )
-      setFilteredTags(filtered)
-      setIsDropdownOpen(true)
+    // Update hidden input when selected tags change
+    const tagsInput = document.getElementById("tags-input") as HTMLInputElement
+    if (tagsInput) {
+      tagsInput.value = JSON.stringify(selectedTags.map((tag) => tag.id))
     }
-  }, [inputValue, availableTags, selectedTags])
 
-  const handleAddTag = (tag: Tag) => {
-    const newTags = [...selectedTags, tag]
-    setSelectedTags(newTags)
-    onChange(newTags)
-    setInputValue("")
-    setIsDropdownOpen(false)
+    // Call onChange if provided
+    if (onChange) {
+      onChange(selectedTags)
+    }
+  }, [selectedTags, onChange])
+
+  const handleSelect = (tag: Tag) => {
+    // Check if tag is already selected
+    if (!selectedTags.some((t) => t.id === tag.id)) {
+      const newSelectedTags = [...selectedTags, tag]
+      setSelectedTags(newSelectedTags)
+    }
+    setOpen(false)
   }
 
-  const handleRemoveTag = (tagId: string) => {
-    const newTags = selectedTags.filter((tag) => tag.id !== tagId)
-    setSelectedTags(newTags)
-    onChange(newTags)
+  const handleRemove = (tagId: string) => {
+    setSelectedTags(selectedTags.filter((tag) => tag.id !== tagId))
   }
 
   return (
@@ -59,44 +55,55 @@ export function TagInput({ initialTags = [], availableTags, onChange }: TagInput
       <div className="flex flex-wrap gap-2 mb-2">
         {selectedTags.map((tag) => (
           <Badge key={tag.id} variant="secondary" className="flex items-center gap-1">
-            <TagIcon className="h-3 w-3" />
             {tag.name}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-4 w-4 p-0 hover:bg-transparent"
-              onClick={() => handleRemoveTag(tag.id)}
+            <button
+              type="button"
+              onClick={() => handleRemove(tag.id)}
+              className="rounded-full outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               <X className="h-3 w-3" />
               <span className="sr-only">Remove {tag.name}</span>
-            </Button>
+            </button>
           </Badge>
         ))}
       </div>
-
-      <div className="relative">
-        <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          placeholder="Search tags..."
-          className="w-full"
-          onFocus={() => inputValue.trim() !== "" && setIsDropdownOpen(true)}
-          onBlur={() => setTimeout(() => setIsDropdownOpen(false), 200)}
-        />
-
-        {isDropdownOpen && filteredTags.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-background border rounded-md shadow-lg max-h-60 overflow-auto">
-            {filteredTags.map((tag) => (
-              <div key={tag.id} className="px-4 py-2 hover:bg-muted cursor-pointer" onClick={() => handleAddTag(tag)}>
-                <div className="flex items-center gap-1">
-                  <TagIcon className="h-3 w-3" />
-                  {tag.name}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+            {selectedTags.length > 0 ? `${selectedTags.length} tags selected` : "Select tags..."}
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-full p-0">
+          <Command>
+            <CommandInput placeholder="Search tags..." />
+            <CommandList>
+              <CommandEmpty>No tags found.</CommandEmpty>
+              <CommandGroup>
+                {availableTags.map((tag) => (
+                  <CommandItem
+                    key={tag.id}
+                    value={tag.name}
+                    onSelect={() => handleSelect(tag)}
+                    className="flex items-center"
+                  >
+                    <Check
+                      className={cn(
+                        "mr-2 h-4 w-4",
+                        selectedTags.some((t) => t.id === tag.id) ? "opacity-100" : "opacity-0",
+                      )}
+                    />
+                    <div>
+                      <p>{tag.name}</p>
+                      {tag.description && <p className="text-sm text-muted-foreground">{tag.description}</p>}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
     </div>
   )
 }

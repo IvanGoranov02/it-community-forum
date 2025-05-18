@@ -33,6 +33,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
   const category = await getCategoryBySlug(resolvedParams.slug)
 
   if (!category) {
+    console.error(`Category not found with slug or id: ${resolvedParams.slug}`)
     notFound()
   }
 
