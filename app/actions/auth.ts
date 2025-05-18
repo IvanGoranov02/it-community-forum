@@ -5,8 +5,8 @@ import { createServerClient } from "@/lib/supabase"
 import { generateUsername } from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 
-// Mark this function as dynamic
-export const dynamic = "force-dynamic"
+// Remove the export of the dynamic constant
+// Instead, we'll handle dynamic behavior in the page components
 
 export async function register(formData: FormData) {
   const name = formData.get("name") as string
