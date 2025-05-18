@@ -5,9 +5,6 @@ import { createServerClient } from "@/lib/supabase"
 import { generateUsername } from "@/lib/utils"
 import { revalidatePath } from "next/cache"
 
-// Remove the export of the dynamic constant
-// Instead, we'll handle dynamic behavior in the page components
-
 export async function register(formData: FormData) {
   const name = formData.get("name") as string
   const email = formData.get("email") as string
@@ -36,7 +33,10 @@ export async function register(formData: FormData) {
       return { error: "Username is already taken" }
     }
 
-    // Create the user
+    // Get the site URL from environment variable or use a fallback
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://your-actual-site-url.com"
+
+    // Create the user with the correct redirect URL
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
@@ -44,6 +44,7 @@ export async function register(formData: FormData) {
         data: {
           full_name: name,
         },
+        emailRedirectTo: `${siteUrl}/auth/callback`,
       },
     })
 

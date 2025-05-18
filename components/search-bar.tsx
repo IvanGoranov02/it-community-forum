@@ -20,6 +20,7 @@ export function SearchBar({ className }: SearchBarProps) {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     if (searchQuery.trim()) {
+      console.log("Searching for:", searchQuery.trim())
       startTransition(() => {
         router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
       })

@@ -8,6 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { updateProfile } from "@/app/actions/profile"
 import { useActionState } from "react"
 import Link from "next/link"
+import { AvatarUpload } from "@/components/avatar-upload"
+import { useState } from "react"
 
 const initialState = { error: "" }
 
@@ -23,6 +25,11 @@ interface ProfileEditFormProps {
 
 export function ProfileEditForm({ user }: ProfileEditFormProps) {
   const [state, formAction, isPending] = useActionState(updateProfile, initialState)
+  const [avatarUrl, setAvatarUrl] = useState(user.avatar || "")
+
+  const handleAvatarChange = (url: string) => {
+    setAvatarUrl(url)
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -31,10 +38,20 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
         <CardDescription>Update your profile information</CardDescription>
       </CardHeader>
       <form action={formAction}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-6">
           {state.error && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{state.error}</div>
           )}
+
+          <AvatarUpload
+            userId={user.id}
+            initialAvatarUrl={user.avatar}
+            username={user.username}
+            onAvatarChange={handleAvatarChange}
+          />
+
+          <input type="hidden" name="avatarUrl" value={avatarUrl} />
+
           <div className="space-y-2">
             <Label htmlFor="username">Username</Label>
             <Input id="username" name="username" defaultValue={user.username} required />
@@ -53,17 +70,6 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
               placeholder="Tell us about yourself..."
               className="min-h-[100px]"
             />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="avatarUrl">Avatar URL</Label>
-            <Input
-              id="avatarUrl"
-              name="avatarUrl"
-              type="url"
-              defaultValue={user.avatar || ""}
-              placeholder="https://example.com/avatar.jpg"
-            />
-            <p className="text-sm text-muted-foreground">Enter a URL to an image for your profile picture</p>
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">

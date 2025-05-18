@@ -17,7 +17,10 @@ interface SearchPageProps {
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const query = searchParams.q || ""
+  console.log("Search page loaded with query:", query)
+
   const results = query ? await searchPosts(query) : []
+  console.log(`Rendering ${results.length} search results`)
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -65,7 +68,9 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground mb-4">No posts found matching your search query.</p>
+              <p className="text-muted-foreground mb-4">
+                {query ? "No posts found matching your search query." : "Enter a search term to find posts."}
+              </p>
               <Link href="/">
                 <Button>Back to Home</Button>
               </Link>

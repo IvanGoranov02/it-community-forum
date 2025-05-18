@@ -67,7 +67,10 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-start gap-4 p-6">
           <Avatar className="h-20 w-20 border">
-            <AvatarImage src={profile.avatar_url || `/placeholder.svg?height=80&width=80`} alt={profile.username} />
+            <AvatarImage
+              src={profile.avatar_url || `/placeholder.svg?height=80&width=80&query=${profile.username}`}
+              alt={profile.username}
+            />
             <AvatarFallback>{profile.username.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">

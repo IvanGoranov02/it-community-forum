@@ -53,7 +53,7 @@ export function ForumPost({
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
           <Avatar className="h-10 w-10 border">
-            <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={author} />
+            <AvatarImage src={`/abstract-geometric-shapes.png?height=40&width=40&query=${author}`} alt={author} />
             <AvatarFallback>{author.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div className="space-y-1">

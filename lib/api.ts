@@ -387,9 +387,16 @@ export const voteOnPost = async (postId: string, userId: string, voteType: 1 | -
 }
 
 // Search
+// Проверка на функцията за търсене в API
+// Нека подобрим функцията за търсене, за да работи по-добре
+
+// Функцията searchPosts остава същата, но нека я прегледаме
 export const searchPosts = async (query: string, limit = 20) => {
   const supabase = createServerClient()
 
+  console.log("Searching posts with query:", query)
+
+  // Използваме ilike за case-insensitive търсене и % за частично съвпадение
   const { data, error } = await supabase
     .from("posts")
     .select(`
@@ -407,5 +414,6 @@ export const searchPosts = async (query: string, limit = 20) => {
     return []
   }
 
+  console.log(`Found ${data.length} results for query: ${query}`)
   return data
 }

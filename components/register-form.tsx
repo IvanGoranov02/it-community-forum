@@ -63,7 +63,10 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         return
       }
 
-      // Create the user
+      // Get the site URL from environment variable or use the current origin
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+
+      // Create the user with the correct redirect URL
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -71,7 +74,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
           data: {
             full_name: name,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       })
 

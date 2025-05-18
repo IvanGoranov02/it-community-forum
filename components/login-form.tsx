@@ -44,12 +44,15 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         if (authError.message.includes("Email not confirmed")) {
           setErrorMessage("Please confirm your email before logging in. Check your inbox for a confirmation link.")
 
+          // Get the site URL from environment variable or use the current origin
+          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+
           // Offer to resend confirmation email
           const { error: resendError } = await supabase.auth.resend({
             type: "signup",
             email,
             options: {
-              emailRedirectTo: `${window.location.origin}/auth/callback`,
+              emailRedirectTo: `${siteUrl}/auth/callback`,
             },
           })
 
@@ -129,11 +132,15 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
     setIsLoading(true)
     try {
       const supabase = createBrowserClient()
+
+      // Get the site URL from environment variable or use the current origin
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+
       const { error } = await supabase.auth.resend({
         type: "signup",
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${siteUrl}/auth/callback`,
         },
       })
 

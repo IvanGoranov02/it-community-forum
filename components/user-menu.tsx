@@ -42,7 +42,10 @@ export function UserMenu({ user }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10">
-            <AvatarImage src={user.avatar || `/placeholder.svg?height=40&width=40`} alt={user.name} />
+            <AvatarImage
+              src={user.avatar || `/placeholder.svg?height=40&width=40&query=${user.name}`}
+              alt={user.name}
+            />
             <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>

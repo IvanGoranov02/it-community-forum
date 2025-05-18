@@ -60,7 +60,10 @@ export default async function PostPage({ params }: PostPageProps) {
         <Card>
           <CardHeader className="flex flex-row items-start gap-4 p-6">
             <Avatar className="h-12 w-12 border">
-              <AvatarImage src={`/placeholder.svg?height=48&width=48`} alt={post.author.username} />
+              <AvatarImage
+                src={post.author.avatar_url || `/placeholder.svg?height=48&width=48&query=${post.author.username}`}
+                alt={post.author.username}
+              />
               <AvatarFallback>{post.author.username.slice(0, 2).toUpperCase()}</AvatarFallback>
             </Avatar>
             <div className="space-y-1">
@@ -105,7 +108,13 @@ export default async function PostPage({ params }: PostPageProps) {
             <Card key={comment.id} id={`comment-${comment.id}`}>
               <CardHeader className="flex flex-row items-start gap-4 p-6">
                 <Avatar className="h-10 w-10 border">
-                  <AvatarImage src={`/placeholder.svg?height=40&width=40`} alt={comment.author.username} />
+                  <AvatarImage
+                    src={
+                      comment.author.avatar_url ||
+                      `/placeholder.svg?height=40&width=40&query=${comment.author.username || "/placeholder.svg"}`
+                    }
+                    alt={comment.author.username}
+                  />
                   <AvatarFallback>{comment.author.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                 </Avatar>
                 <div className="space-y-1">
