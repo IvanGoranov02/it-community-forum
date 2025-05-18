@@ -71,13 +71,14 @@ export async function register(formData: FormData) {
     const { data: sessionData } = await supabase.auth.getSession()
 
     if (sessionData?.session) {
-      cookies().set("supabase-auth", JSON.stringify(sessionData.session), {
+      const cookieStore = await cookies();
+      cookieStore.set("supabase-auth", JSON.stringify(sessionData.session), {
         path: "/",
         maxAge: 60 * 60 * 24 * 7, // 1 week
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
-      })
+      });
     }
 
     revalidatePath("/")
@@ -110,13 +111,14 @@ export async function login(formData: FormData) {
     }
 
     // Set the auth cookie
-    cookies().set("supabase-auth", JSON.stringify(data.session), {
+    const cookieStore = await cookies();
+    cookieStore.set("supabase-auth", JSON.stringify(data.session), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 1 week
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
-    })
+    });
 
     revalidatePath("/")
     return { success: true }
@@ -130,7 +132,8 @@ export async function logout() {
   try {
     const supabase = createServerClient()
     await supabase.auth.signOut()
-    cookies().delete("supabase-auth")
+    const cookieStore = await cookies();
+    cookieStore.delete("supabase-auth");
     revalidatePath("/")
     return { success: true }
   } catch (error) {
@@ -142,7 +145,7 @@ export async function logout() {
 export async function getUser() {
   try {
     const supabase = createServerClient()
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const authCookie = cookieStore.get("supabase-auth")
 
     if (!authCookie?.value) {
@@ -181,7 +184,8 @@ export async function getUser() {
       }
     } catch (parseError) {
       console.error("Error parsing auth cookie:", parseError)
-      cookies().delete("supabase-auth")
+      const cookieStore = await cookies();
+      cookieStore.delete("supabase-auth");
       return null
     }
   } catch (error) {
