@@ -9,44 +9,123 @@ export default async function DebugAddIsArchivedColumnPage() {
 
   try {
     // Проверяваме дали колоната вече съществува
-    const { data: checkData, error: checkError } = await supabase.rpc("column_exists", {
+    const { data: columnExists, error: checkError } = await supabase.rpc("column_exists", {
       table_name: "posts",
       column_name: "is_archived",
     })
 
     if (checkError) {
-      result = {
-        success: false,
-        message: "Error checking if column exists",
-        error: checkError,
+      // Ако функцията column_exists не съществува, създаваме я
+      const createFunctionSql = `
+        CREATE OR REPLACE FUNCTION column_exists(table_name text, column_name text)
+        RETURNS boolean
+        LANGUAGE plpgsql
+        SECURITY DEFINER
+        AS $$
+        DECLARE
+          column_exists boolean;
+        BEGIN
+          SELECT EXISTS (
+            SELECT 1
+            FROM information_schema.columns
+            WHERE table_name = $1
+            AND column_name = $2
+          ) INTO column_exists;
+          
+          RETURN column_exists;
+        END;
+        $$;
+      `
+
+      await supabase.rpc("execute_sql", {
+        sql_query: createFunctionSql,
+      })
+
+      // Проверяваме отново
+      const { data: columnExistsRetry } = await supabase.rpc("column_exists", {
+        table_name: "posts",
+        column_name: "is_archived",
+      })
+
+      if (columnExistsRetry) {
+        result = {
+          success: true,
+          message: "Column is_archived already exists in posts table",
+          error: null,
+        }
+        return result
       }
-    } else if (checkData) {
+    } else if (columnExists) {
       result = {
         success: true,
         message: "Column is_archived already exists in posts table",
         error: null,
       }
-    } else {
-      // Добавяме колоната is_archived
-      const { data, error } = await supabase.rpc("execute_sql", {
-        sql_query: `
-          ALTER TABLE posts 
-          ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT FALSE;
-        `,
+      return result
+    }
+
+    // Добавяме колоната is_archived
+    const sql = `
+      ALTER TABLE posts ADD COLUMN IF NOT EXISTS is_archived BOOLEAN DEFAULT false;
+    `
+
+    const { data, error } = await supabase.rpc("execute_sql", {
+      sql_query: sql,
+    })
+
+    if (error) {
+      // Ако функцията execute_sql не съществува, създаваме я
+      const createExecuteSqlFunction = `
+        CREATE OR REPLACE FUNCTION execute_sql(sql_query text)
+        RETURNS json
+        LANGUAGE plpgsql
+        SECURITY DEFINER
+        AS $$
+        BEGIN
+          EXECUTE sql_query;
+          RETURN json_build_object('success', true);
+        EXCEPTION WHEN OTHERS THEN
+          RETURN json_build_object('success', false, 'error', SQLERRM);
+        END;
+        $$;
+      `
+
+      await supabase.from("_sql").select("*").execute(createExecuteSqlFunction)
+
+      // Опитваме отново да добавим колоната
+      const { error: retryError } = await supabase.rpc("execute_sql", {
+        sql_query: sql,
       })
 
-      if (error) {
-        result = {
-          success: false,
-          message: "Error adding is_archived column",
-          error,
+      if (retryError) {
+        // Ако все още има грешка, опитваме директно с SQL
+        const { error: directError } = await supabase.from("_sql").select("*").execute(sql)
+
+        if (directError) {
+          result = {
+            success: false,
+            message: "Failed to add is_archived column",
+            error: directError,
+          }
+        } else {
+          result = {
+            success: true,
+            message: "Successfully added is_archived column (direct SQL)",
+            error: null,
+          }
         }
       } else {
         result = {
           success: true,
-          message: "Successfully added is_archived column to posts table",
+          message: "Successfully added is_archived column (retry)",
           error: null,
         }
+      }
+    } else {
+      result = {
+        success: true,
+        message: "Successfully added is_archived column",
+        error: null,
       }
     }
   } catch (error) {
@@ -77,6 +156,9 @@ export default async function DebugAddIsArchivedColumnPage() {
         </Link>
         <Link href="/debug-check-is-archived" className="text-blue-500 hover:underline">
           Check is_archived Column
+        </Link>
+        <Link href="/new-post" className="text-blue-500 hover:underline">
+          Create New Post
         </Link>
       </div>
     </div>

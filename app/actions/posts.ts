@@ -35,26 +35,42 @@ export async function createNewPost(formData: FormData) {
 }
 
 export async function createPostWithTags(formData: FormData) {
-  const user = await getUser()
-
-  if (!user) {
-    return { error: "You must be logged in to create a post" }
-  }
-
-  const title = formData.get("title") as string
-  const content = formData.get("content") as string
-  const categoryId = formData.get("category") as string
-  const tagsJson = formData.get("tags") as string
-
-  if (!title || !content || !categoryId) {
-    return { error: "All fields are required" }
-  }
-
   try {
-    // Create the post
+    const user = await getUser()
+
+    if (!user) {
+      return { error: "Трябва да сте влезли в профила си, за да създадете пост" }
+    }
+
+    const title = formData.get("title") as string
+    const content = formData.get("content") as string
+    const categoryId = formData.get("category") as string
+    const tagsJson = formData.get("tags") as string
+
+    if (!title || !content || !categoryId) {
+      return { error: "Всички полета са задължителни" }
+    }
+
+    // Създаваме slug от заглавието
+    const baseSlug = slugify(title)
+    const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-6)}`
+
+    // Създаваме поста
     const supabase = createServerClient()
 
-    // Insert the post directly
+    // Проверяваме дали категорията съществува
+    const { data: categoryCheck, error: categoryError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("id", categoryId)
+      .single()
+
+    if (categoryError || !categoryCheck) {
+      console.error("Error checking category:", categoryError)
+      return { error: "Избраната категория не съществува" }
+    }
+
+    // Вмъкваме поста директно - премахваме is_archived полето
     const { data: post, error: postError } = await supabase
       .from("posts")
       .insert({
@@ -62,23 +78,18 @@ export async function createPostWithTags(formData: FormData) {
         content,
         category_id: categoryId,
         author_id: user.id,
-        slug:
-          title
-            .toLowerCase()
-            .replace(/[^\w\s]/gi, "")
-            .replace(/\s+/g, "-") +
-          "-" +
-          Date.now().toString().slice(-6),
+        slug: uniqueSlug,
+        // Премахваме is_archived: false, тъй като колоната не съществува
       })
       .select()
       .single()
 
     if (postError || !post) {
       console.error("Error creating post:", postError)
-      return { error: postError?.message || "Failed to create post" }
+      return { error: postError?.message || "Грешка при създаването на поста" }
     }
 
-    // Add tags if provided
+    // Добавяме тагове, ако са предоставени
     if (tagsJson) {
       try {
         const tagIds = JSON.parse(tagsJson) as string[]
@@ -90,20 +101,20 @@ export async function createPostWithTags(formData: FormData) {
       }
     }
 
-    // Process mentions
+    // Обработваме споменаванията
     const mentions = extractMentions(content)
     if (mentions.length > 0) {
-      // Get all mentioned users
+      // Вземаме всички споменати потребители
       const { data: mentionedUsers } = await supabase.from("profiles").select("id, username").in("username", mentions)
 
-      // Create notifications for mentioned users
+      // Създаваме известия за споменатите потребители
       if (mentionedUsers) {
         for (const mentionedUser of mentionedUsers) {
           if (mentionedUser.id !== user.id) {
-            // Don't notify yourself
+            // Не известяваме себе си
             await createNotification(
               mentionedUser.id,
-              `${user.name} mentioned you in a post: "${title}"`,
+              `${user.name || user.username} ви спомена в пост: "${title}"`,
               `/post/${post.slug}`,
               "mention",
             )
@@ -115,13 +126,15 @@ export async function createPostWithTags(formData: FormData) {
     revalidatePath("/")
     revalidatePath(`/category/${categoryId}`)
     revalidatePath("/my-posts")
-    redirect(`/post/${post.slug}`)
+
+    return { success: true, slug: post.slug }
   } catch (error: any) {
     console.error("Error in createPostWithTags:", error)
-    return { error: error.message || "Failed to create post" }
+    return { error: error.message || "Грешка при създаването на поста" }
   }
 }
 
+// Останалата част от файла остава непроменена
 export async function createPost(formData: FormData) {
   const user = await getUser()
 
@@ -354,6 +367,22 @@ export async function archivePost(postId: string) {
       return { error: "You are not authorized to archive this post" }
     }
 
+    // Проверяваме дали колоната is_archived съществува
+    const { data: columnExists, error: columnError } = await supabase.rpc("column_exists", {
+      table_name: "posts",
+      column_name: "is_archived",
+    })
+
+    if (columnError) {
+      console.error("Error checking if is_archived column exists:", columnError)
+      return { error: "Не може да се архивира поста в момента" }
+    }
+
+    if (!columnExists) {
+      console.error("is_archived column does not exist")
+      return { error: "Функцията за архивиране не е налична в момента" }
+    }
+
     // Archive post
     const { error: archiveError } = await supabase.from("posts").update({ is_archived: true }).eq("id", postId)
 
@@ -395,6 +424,22 @@ export async function unarchivePost(postId: string) {
 
     if (post.author_id !== user.id) {
       return { error: "You are not authorized to unarchive this post" }
+    }
+
+    // Проверяваме дали колоната is_archived съществува
+    const { data: columnExists, error: columnError } = await supabase.rpc("column_exists", {
+      table_name: "posts",
+      column_name: "is_archived",
+    })
+
+    if (columnError) {
+      console.error("Error checking if is_archived column exists:", columnError)
+      return { error: "Не може да се разархивира поста в момента" }
+    }
+
+    if (!columnExists) {
+      console.error("is_archived column does not exist")
+      return { error: "Функцията за разархивиране не е налична в момента" }
     }
 
     // Unarchive post

@@ -6,6 +6,7 @@ import { getUserNotifications, markAllNotificationsAsRead } from "@/app/actions/
 import { getUser } from "@/app/actions/auth"
 import { redirect } from "next/navigation"
 import { formatDate } from "@/lib/utils"
+import { createServerClient } from "@/lib/supabase"
 
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
@@ -18,6 +19,31 @@ export default async function NotificationsPage() {
   }
 
   const notifications = await getUserNotifications(50) // Get up to 50 notifications
+
+  // Проверяваме валидността на линковете към постове
+  const supabase = createServerClient()
+  const validatedNotifications = await Promise.all(
+    notifications.map(async (notification) => {
+      if (notification.link && notification.link.includes("/post/")) {
+        const match = notification.link.match(/\/post\/([^#]+)/)
+        if (match && match[1]) {
+          const slug = match[1]
+
+          const { data, error } = await supabase.from("posts").select("id, title").eq("slug", slug).maybeSingle()
+
+          if (error || !data) {
+            // Ако постът не съществува, променяме линка към началната страница
+            return {
+              ...notification,
+              link: "/",
+              content: notification.content + " (Постът вече не съществува)",
+            }
+          }
+        }
+      }
+      return notification
+    }),
+  )
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -41,17 +67,19 @@ export default async function NotificationsPage() {
       <div className="mb-6">
         <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground mb-4">
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to Forums
+          Обратно към форума
         </Link>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
-            <p className="text-muted-foreground mt-1">Stay updated with activity related to your posts and comments</p>
+            <h1 className="text-3xl font-bold tracking-tight">Известия</h1>
+            <p className="text-muted-foreground mt-1">
+              Бъдете в течение с активността, свързана с вашите постове и коментари
+            </p>
           </div>
           <form action={markAllNotificationsAsRead}>
             <Button type="submit" variant="outline" size="sm" className="flex items-center gap-1">
               <Check className="h-4 w-4" />
-              Mark all as read
+              Маркирай всички като прочетени
             </Button>
           </form>
         </div>
@@ -59,12 +87,12 @@ export default async function NotificationsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Your Notifications</CardTitle>
-          <CardDescription>You have {notifications.length} notifications</CardDescription>
+          <CardTitle>Вашите известия</CardTitle>
+          <CardDescription>Имате {validatedNotifications.length} известия</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {notifications.length > 0 ? (
-            notifications.map((notification) => (
+          {validatedNotifications.length > 0 ? (
+            validatedNotifications.map((notification) => (
               <Link
                 key={notification.id}
                 href={notification.link || "#"}
@@ -83,7 +111,7 @@ export default async function NotificationsPage() {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">You don't have any notifications yet</p>
+              <p className="text-muted-foreground">Нямате известия</p>
             </div>
           )}
         </CardContent>

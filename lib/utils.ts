@@ -57,8 +57,14 @@ export function slugify(text: string): string {
 
 export function extractMentions(text: string): string[] {
   const mentionRegex = /@(\w+)/g
-  const matches = text.match(mentionRegex) || []
-  return matches.map((match) => match.substring(1)) // Remove the @ symbol
+  const mentions: string[] = []
+  let match
+
+  while ((match = mentionRegex.exec(text)) !== null) {
+    mentions.push(match[1])
+  }
+
+  return [...new Set(mentions)] // Премахваме дубликатите
 }
 
 export function highlightMentions(text: string): string {

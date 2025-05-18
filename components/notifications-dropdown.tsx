@@ -16,6 +16,7 @@ import { formatDate } from "@/lib/utils"
 import { markNotificationAsRead, markAllNotificationsAsRead } from "@/app/actions/notifications"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
 interface Notification {
   id: string
@@ -70,23 +71,66 @@ export function NotificationsDropdown({
   }, [userId])
 
   const handleNotificationClick = async (notification: Notification) => {
-    if (!notification.is_read) {
-      await markNotificationAsRead(notification.id)
-      setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)))
-      setUnreadCount((prev) => Math.max(0, prev - 1))
-    }
+    try {
+      if (!notification.is_read) {
+        await markNotificationAsRead(notification.id)
+        setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)))
+        setUnreadCount((prev) => Math.max(0, prev - 1))
+      }
 
-    if (notification.link) {
-      router.push(notification.link)
-    }
+      if (notification.link) {
+        // Проверяваме дали линкът е валиден
+        const supabase = createBrowserClient()
 
-    setIsOpen(false)
+        // Извличаме slug от линка
+        const match = notification.link.match(/\/post\/([^#]+)/)
+        if (match && match[1]) {
+          const slug = match[1]
+
+          // Проверяваме дали постът съществува
+          const { data, error } = await supabase.from("posts").select("id").eq("slug", slug).maybeSingle()
+
+          if (error || !data) {
+            toast({
+              title: "Грешка",
+              description: "Постът не съществува или е изтрит",
+              variant: "destructive",
+            })
+            return
+          }
+        }
+
+        router.push(notification.link)
+      }
+
+      setIsOpen(false)
+    } catch (error) {
+      console.error("Error handling notification click:", error)
+      toast({
+        title: "Грешка",
+        description: "Възникна проблем при обработката на известието",
+        variant: "destructive",
+      })
+    }
   }
 
   const handleMarkAllAsRead = async () => {
-    await markAllNotificationsAsRead()
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
-    setUnreadCount(0)
+    try {
+      await markAllNotificationsAsRead()
+      setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })))
+      setUnreadCount(0)
+      toast({
+        title: "Успех",
+        description: "Всички известия са маркирани като прочетени",
+      })
+    } catch (error) {
+      console.error("Error marking all notifications as read:", error)
+      toast({
+        title: "Грешка",
+        description: "Възникна проблем при маркирането на известията като прочетени",
+        variant: "destructive",
+      })
+    }
   }
 
   const getNotificationIcon = (type: string) => {
@@ -123,10 +167,10 @@ export function NotificationsDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between p-4">
-          <h3 className="font-medium">Notifications</h3>
+          <h3 className="font-medium">Известия</h3>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead}>
-              Mark all as read
+              Маркирай всички като прочетени
             </Button>
           )}
         </div>
@@ -151,13 +195,13 @@ export function NotificationsDropdown({
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/notifications" className="w-full p-4 text-center text-sm text-primary">
-                View all notifications
+                Виж всички известия
               </Link>
             </DropdownMenuItem>
           </>
         ) : (
           <div className="p-4 text-center text-sm text-muted-foreground">
-            <p>No notifications yet</p>
+            <p>Нямате известия</p>
           </div>
         )}
       </DropdownMenuContent>

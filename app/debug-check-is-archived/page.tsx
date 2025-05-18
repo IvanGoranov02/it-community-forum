@@ -8,11 +8,13 @@ export default async function DebugCheckIsArchivedPage() {
   let result = { exists: false, message: "", error: null }
 
   try {
-    // Проверяваме дали колоната съществува
-    const { data, error } = await supabase.rpc("column_exists", {
-      table_name: "posts",
-      column_name: "is_archived",
-    })
+    // Проверяваме дали колоната съществува директно с SQL заявка
+    const { data, error } = await supabase
+      .from("_sql")
+      .select("*")
+      .execute(
+        "SELECT column_name FROM information_schema.columns WHERE table_name = 'posts' AND column_name = 'is_archived'",
+      )
 
     if (error) {
       result = {
@@ -21,9 +23,12 @@ export default async function DebugCheckIsArchivedPage() {
         error,
       }
     } else {
+      const columnExists = data && data.length > 0
       result = {
-        exists: !!data,
-        message: data ? "Column is_archived exists in posts table" : "Column is_archived does NOT exist in posts table",
+        exists: columnExists,
+        message: columnExists
+          ? "Column is_archived exists in posts table"
+          : "Column is_archived does NOT exist in posts table",
         error: null,
       }
     }
@@ -58,6 +63,9 @@ export default async function DebugCheckIsArchivedPage() {
             Add is_archived Column
           </Link>
         )}
+        <Link href="/new-post" className="text-blue-500 hover:underline">
+          Create New Post
+        </Link>
       </div>
     </div>
   )
