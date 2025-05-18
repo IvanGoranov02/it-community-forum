@@ -4,7 +4,7 @@ import { createServerClient } from "@/lib/supabase"
 import { getUser } from "@/app/actions/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
-import type { UserRole, AdminStats, UserManagementFilters, AdminSettings } from "@/types/admin"
+import type { UserRole, AdminStats, UserManagementFilters, AdminSettings, PostSettings } from "@/types/admin"
 
 // Помощна функция за проверка на администраторски права
 async function checkAdminAccess() {
@@ -403,5 +403,72 @@ export async function reportContent(
     return { error: error.message }
   }
 
+  return { success: true }
+}
+
+// Получаване на настройките на постовете
+export async function getPostSettings(): Promise<PostSettings | null> {
+  await checkAdminAccess()
+
+  const supabase = createServerClient()
+
+  const { data, error } = await supabase.from("post_settings").select("*").single()
+
+  if (error) {
+    console.error("Error fetching post settings:", error)
+    return null
+  }
+
+  return {
+    id: data.id,
+    minPostRole: data.min_post_role as UserRole,
+    minCommentRole: data.min_comment_role as UserRole,
+    allowGuestVoting: data.allow_guest_voting,
+    allowSelfVoting: data.allow_self_voting,
+    minPostLength: data.min_post_length,
+    maxPostLength: data.max_post_length,
+    minCommentLength: data.min_comment_length,
+    maxCommentLength: data.max_comment_length,
+    maxTagsPerPost: data.max_tags_per_post,
+    postModeration: data.post_moderation as "pre" | "post" | "none",
+    commentModeration: data.comment_moderation as "pre" | "post" | "none",
+    bannedWords: data.banned_words || [],
+    enableAutoModeration: data.enable_auto_moderation,
+    updated_at: data.updated_at,
+  }
+}
+
+// Обновяване на настройките на постовете
+export async function updatePostSettings(settings: Partial<PostSettings>) {
+  await checkAdminAccess()
+
+  const supabase = createServerClient()
+
+  const { error } = await supabase
+    .from("post_settings")
+    .update({
+      min_post_role: settings.minPostRole,
+      min_comment_role: settings.minCommentRole,
+      allow_guest_voting: settings.allowGuestVoting,
+      allow_self_voting: settings.allowSelfVoting,
+      min_post_length: settings.minPostLength,
+      max_post_length: settings.maxPostLength,
+      min_comment_length: settings.minCommentLength,
+      max_comment_length: settings.maxCommentLength,
+      max_tags_per_post: settings.maxTagsPerPost,
+      post_moderation: settings.postModeration,
+      comment_moderation: settings.commentModeration,
+      banned_words: settings.bannedWords,
+      enable_auto_moderation: settings.enableAutoModeration,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", settings.id)
+
+  if (error) {
+    console.error("Error updating post settings:", error)
+    return { error: error.message }
+  }
+
+  revalidatePath("/admin/post-settings")
   return { success: true }
 }

@@ -63,3 +63,21 @@ export interface AdminSettings {
   maxReportsBeforeHidden: number
   updated_at: string
 }
+
+export interface PostSettings {
+  id: string
+  minPostRole: UserRole
+  minCommentRole: UserRole
+  allowGuestVoting: boolean
+  allowSelfVoting: boolean
+  minPostLength: number
+  maxPostLength: number
+  minCommentLength: number
+  maxCommentLength: number
+  maxTagsPerPost: number
+  postModeration: "pre" | "post" | "none"
+  commentModeration: "pre" | "post" | "none"
+  bannedWords: string[]
+  enableAutoModeration: boolean
+  updated_at: string
+}
