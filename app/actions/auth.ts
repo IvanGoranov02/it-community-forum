@@ -71,7 +71,7 @@ export async function register(formData: FormData) {
     const { data: sessionData } = await supabase.auth.getSession()
 
     if (sessionData?.session) {
-      const cookieStore = cookies()
+      const cookieStore = await cookies()
       await cookieStore.set("supabase-auth", JSON.stringify(sessionData.session), {
         path: "/",
         maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -111,7 +111,7 @@ export async function login(formData: FormData) {
     }
 
     // Set the auth cookie
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     await cookieStore.set("supabase-auth", JSON.stringify(data.session), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 1 week
@@ -133,7 +133,7 @@ export async function logout() {
     const supabase = createServerClient()
     await supabase.auth.signOut()
 
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     await cookieStore.delete("supabase-auth")
 
     revalidatePath("/")
@@ -147,7 +147,7 @@ export async function logout() {
 export async function getUser() {
   try {
     const supabase = createServerClient()
-    const cookieStore = cookies()
+    const cookieStore = await cookies()
     const authCookie = await cookieStore.get("supabase-auth")
 
     if (!authCookie?.value) {
@@ -186,7 +186,7 @@ export async function getUser() {
       }
     } catch (parseError) {
       console.error("Error parsing auth cookie:", parseError)
-      const cookieStore = cookies()
+      const cookieStore = await cookies()
       await cookieStore.delete("supabase-auth")
       return null
     }

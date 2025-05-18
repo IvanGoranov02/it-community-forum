@@ -39,8 +39,8 @@ export async function POST(request: Request) {
     console.log("Login successful, setting cookie")
 
     // Set the auth cookie
-    const cookieStore = cookies()
-    await cookieStore.set("supabase-auth", JSON.stringify(data.session), {
+    const cookieStore = await cookies()
+    cookieStore.set("supabase-auth", JSON.stringify(data.session), {
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 1 week
       httpOnly: true,
