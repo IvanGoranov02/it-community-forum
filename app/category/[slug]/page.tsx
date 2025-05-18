@@ -25,8 +25,12 @@ interface CategoryPageProps {
 }
 
 export default async function CategoryPage({ params, searchParams }: CategoryPageProps) {
+  // Await params и searchParams
+  const resolvedParams = await params
+  const resolvedSearchParams = await searchParams
+
   const user = await getUser()
-  const category = await getCategoryBySlug(params.slug)
+  const category = await getCategoryBySlug(resolvedParams.slug)
 
   if (!category) {
     notFound()
@@ -40,7 +44,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
   // Sort posts based on the selected tab
   const sortedPosts = [...posts]
-  const sort = searchParams.sort || "recent"
+  const sort = resolvedSearchParams.sort || "recent"
 
   if (sort === "popular") {
     sortedPosts.sort((a, b) => b.total_votes - a.total_votes)
@@ -85,16 +89,16 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       <Tabs defaultValue={sort} className="mb-8">
         <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="all" asChild>
-            <Link href={`/category/${params.slug}`}>All Topics</Link>
+            <Link href={`/category/${resolvedParams.slug}`}>All Topics</Link>
           </TabsTrigger>
           <TabsTrigger value="popular" asChild>
-            <Link href={`/category/${params.slug}?sort=popular`}>Popular</Link>
+            <Link href={`/category/${resolvedParams.slug}?sort=popular`}>Popular</Link>
           </TabsTrigger>
           <TabsTrigger value="recent" asChild>
-            <Link href={`/category/${params.slug}?sort=recent`}>Recent</Link>
+            <Link href={`/category/${resolvedParams.slug}?sort=recent`}>Recent</Link>
           </TabsTrigger>
           <TabsTrigger value="unanswered" asChild>
-            <Link href={`/category/${params.slug}?sort=unanswered`}>Unanswered</Link>
+            <Link href={`/category/${resolvedParams.slug}?sort=unanswered`}>Unanswered</Link>
           </TabsTrigger>
         </TabsList>
         <Card>

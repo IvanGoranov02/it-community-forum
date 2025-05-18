@@ -13,7 +13,10 @@ type Props = {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const username = params.username
+  // Await params
+  const resolvedParams = await params
+  const username = resolvedParams.username
+
   return {
     title: `${username}'s Profile | IT Community Forum`,
     description: `View ${username}'s profile and posts`,
@@ -21,9 +24,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function ProfilePage({ params }: Props) {
+  // Await params
+  const resolvedParams = await params
+
   const supabase = createServerClient()
   const currentUser = await getUser()
-  const username = params.username
+  const username = resolvedParams.username
 
   // Get user profile
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("username", username).single()

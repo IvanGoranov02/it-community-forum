@@ -28,8 +28,11 @@ interface PostPageProps {
 }
 
 export default async function PostPage({ params }: PostPageProps) {
+  // Await params
+  const resolvedParams = await params
+
   const user = await getUser()
-  const post = await getPostBySlug(params.slug)
+  const post = await getPostBySlug(resolvedParams.slug)
 
   if (!post) {
     notFound()
@@ -167,7 +170,7 @@ export default async function PostPage({ params }: PostPageProps) {
             <h3 className="text-lg font-medium">Add Your Reply</h3>
             <form action={createNewComment}>
               <input type="hidden" name="postId" value={post.id} />
-              <input type="hidden" name="slug" value={params.slug} />
+              <input type="hidden" name="slug" value={resolvedParams.slug} />
               <Textarea
                 name="content"
                 placeholder="Share your thoughts... Use @username to mention users"
@@ -186,10 +189,10 @@ export default async function PostPage({ params }: PostPageProps) {
                 <h3 className="text-lg font-medium">Join the conversation</h3>
                 <p className="text-muted-foreground">You need to be logged in to reply to this post.</p>
                 <div className="flex justify-center gap-4">
-                  <Link href={`/login?redirect=/post/${params.slug}`}>
+                  <Link href={`/login?redirect=/post/${resolvedParams.slug}`}>
                     <Button>Sign In</Button>
                   </Link>
-                  <Link href={`/register?redirect=/post/${params.slug}`}>
+                  <Link href={`/register?redirect=/post/${resolvedParams.slug}`}>
                     <Button variant="outline">Register</Button>
                   </Link>
                 </div>
