@@ -12,19 +12,28 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
+import { useLoading } from "@/app/context/loading-context"
 
-export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
+export function LoginForm({
+  redirectUrl = "/",
+  message,
+  error: initialError,
+}: {
+  redirectUrl?: string
+  message?: string
+  error?: string
+}) {
   const router = useRouter()
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
+  const { startLoading, stopLoading } = useLoading()
+  const [errorMessage, setErrorMessage] = useState(initialError || "")
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [debugInfo, setDebugInfo] = useState<any>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    startLoading("Влизане в системата...")
     setErrorMessage("")
     setDebugInfo(null)
 
@@ -67,7 +76,7 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         }
 
         setDebugInfo({ clientError: authError })
-        setIsLoading(false)
+        stopLoading()
         return
       }
 
@@ -115,7 +124,7 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      stopLoading()
     }
   }
 
@@ -129,7 +138,7 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       return
     }
 
-    setIsLoading(true)
+    startLoading("Изпращане на имейл за потвърждение...")
     try {
       const supabase = createBrowserClient()
 
@@ -163,7 +172,7 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      stopLoading()
     }
   }
 
@@ -175,6 +184,12 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
+          {message && (
+            <div className="bg-green-100 border border-green-400 text-black px-4 py-3 rounded">
+              <p>{message}</p>
+            </div>
+          )}
+
           {errorMessage && (
             <div className="bg-red-100 border border-red-400 text-black px-4 py-3 rounded">
               <p>{errorMessage}</p>
@@ -222,8 +237,8 @@ export function LoginForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
           {debugInfo && <DebugInfo title="Debug Information" data={debugInfo} />}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Signing In..." : "Sign In"}
+          <Button type="submit" className="w-full">
+            Sign In
           </Button>
           <div className="text-center text-sm">
             Don't have an account?{" "}

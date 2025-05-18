@@ -2,6 +2,7 @@ import type React from "react"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/app/context/auth-context"
+import { LoadingProvider } from "@/app/context/loading-context"
 import { getUser } from "@/app/actions/auth"
 import "./globals.css"
 
@@ -27,7 +28,9 @@ export default async function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider initialUser={user}>{children}</AuthProvider>
+          <LoadingProvider>
+            <AuthProvider initialUser={user}>{children}</AuthProvider>
+          </LoadingProvider>
         </ThemeProvider>
       </body>
     </html>
