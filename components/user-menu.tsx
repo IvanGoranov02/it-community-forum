@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { logout } from "@/app/actions/auth"
-import { LogOut, Settings, MessageSquare, UserCircle, Bookmark } from "lucide-react"
+import { LogOut, Settings, MessageSquare, UserCircle, Bookmark, Shield } from "lucide-react"
 
 interface UserMenuProps {
   user: {
@@ -20,6 +20,7 @@ interface UserMenuProps {
     email: string
     username: string
     avatar?: string
+    role?: string
   } | null
 }
 
@@ -36,6 +37,9 @@ export function UserMenu({ user }: UserMenuProps) {
       </div>
     )
   }
+
+  const isAdmin = user.role === "admin"
+  const isModerator = user.role === "moderator"
 
   return (
     <DropdownMenu>
@@ -82,6 +86,33 @@ export function UserMenu({ user }: UserMenuProps) {
             <span>Settings</span>
           </Link>
         </DropdownMenuItem>
+
+        {/* Показване на връзка към админ панела само за администратори */}
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin" className="cursor-pointer flex w-full items-center">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Admin Panel</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {/* Показване на връзка към модераторския панел само за модератори */}
+        {isModerator && !isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin/moderation" className="cursor-pointer flex w-full items-center">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Moderation</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <form action={logout} className="w-full">
