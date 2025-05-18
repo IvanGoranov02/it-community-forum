@@ -12,14 +12,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { updateUserSettings } from "@/app/actions/settings"
 import { useToast } from "@/hooks/use-toast"
-import { useLoading } from "@/app/context/loading-context"
+import { Loader2 } from "lucide-react"
 
 const settingsFormSchema = z.object({
   theme: z.enum(["light", "dark", "system"], {
-    required_error: "Please select a theme.",
+    required_error: "Моля, изберете тема.",
   }),
   language: z.string({
-    required_error: "Please select a language.",
+    required_error: "Моля, изберете език.",
   }),
   emailNotifications: z.boolean().default(true),
   marketingEmails: z.boolean().default(false),
@@ -40,7 +40,7 @@ interface UserSettingsFormProps {
 
 export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
   const { toast } = useToast()
-  const { startLoading, stopLoading } = useLoading()
+  const [isLoading, setIsLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("notifications")
 
   const form = useForm<SettingsFormValues>({
@@ -55,7 +55,7 @@ export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
   })
 
   async function onSubmit(data: SettingsFormValues) {
-    startLoading("Запазване на настройките...")
+    setIsLoading(true)
     try {
       const result = await updateUserSettings(data)
 
@@ -78,7 +78,7 @@ export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
         variant: "destructive",
       })
     } finally {
-      stopLoading()
+      setIsLoading(false)
     }
   }
 
@@ -276,7 +276,10 @@ export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
             </div>
           </TabsContent>
           <div className="flex justify-end">
-            <Button type="submit">Запази настройките</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Запази настройките
+            </Button>
           </div>
         </form>
       </Form>

@@ -1,5 +1,14 @@
--- Функция за създаване на таблицата user_settings, ако не съществува
-CREATE OR REPLACE FUNCTION create_user_settings_table()
+-- Създаваме функцията за set_updated_at, ако не съществува
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Създаваме функция за инициализация на таблицата user_settings
+CREATE OR REPLACE FUNCTION init_user_settings()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
@@ -62,3 +71,6 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- Изпълняваме функцията за инициализация
+SELECT init_user_settings();

@@ -2,12 +2,27 @@
 
 import { createServerClient } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
-import { cookies } from "next/headers"
+
+// Проверяваме дали таблицата user_settings съществува и я създаваме, ако не съществува
+async function ensureUserSettingsTableExists() {
+  const supabase = createServerClient()
+
+  // Проверяваме дали таблицата съществува
+  const { error: checkError } = await supabase.from("user_settings").select("count").limit(1)
+
+  if (checkError && checkError.code === "42P01") {
+    // Код за несъществуваща таблица
+    // Създаваме таблицата
+    await supabase.rpc("create_user_settings_table")
+  }
+}
 
 export async function getUserSettings() {
   try {
-    const cookieStore = cookies()
     const supabase = createServerClient()
+
+    // Уверяваме се, че таблицата съществува
+    await ensureUserSettingsTableExists()
 
     const {
       data: { session },
@@ -20,6 +35,7 @@ export async function getUserSettings() {
     const { data, error } = await supabase.from("user_settings").select("*").eq("user_id", session.user.id).single()
 
     if (error || !data) {
+      console.log("No settings found or error:", error)
       // Return default settings if no settings found
       return {
         emailNotifications: true,
@@ -53,6 +69,9 @@ export async function updateUserSettings(settings: {
   try {
     const supabase = createServerClient()
 
+    // Уверяваме се, че таблицата съществува
+    await ensureUserSettingsTableExists()
+
     const {
       data: { session },
     } = await supabase.auth.getSession()
@@ -81,7 +100,8 @@ export async function updateUserSettings(settings: {
     }
 
     if (result.error) {
-      throw new Error("Грешка при запазване на настройките")
+      console.error("Error saving settings:", result.error)
+      throw new Error("Грешка при запазване на настройките: " + result.error.message)
     }
 
     revalidatePath("/settings")
