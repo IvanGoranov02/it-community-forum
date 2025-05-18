@@ -128,7 +128,7 @@ export async function login(formData: FormData) {
   }
 }
 
-export async function signOut() {
+export async function logout() {
   try {
     const supabase = createServerClient()
     await supabase.auth.signOut()

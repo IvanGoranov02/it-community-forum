@@ -6,7 +6,7 @@ import { cache } from "react"
 export const getCategories = cache(async () => {
   const supabase = createServerClient()
 
-  // Първо извличаме всички категории
+  // Извличаме категориите
   const { data: categories, error } = await supabase.from("categories").select("*").order("name")
 
   if (error) {
@@ -14,33 +14,47 @@ export const getCategories = cache(async () => {
     return []
   }
 
-  // След това извличаме броя на постовете за всяка категория
+  // Извличаме броя на постовете за всяка категория без филтриране по is_archived
   const categoriesWithCounts = await Promise.all(
     categories.map(async (category) => {
       try {
-        // Извличаме броя на постовете за тази категория
-        const { data: posts, error: postError } = await supabase
+        // Проверяваме дали категорията вече има post_count
+        if (category.post_count !== undefined && category.post_count !== null) {
+          return {
+            ...category,
+            postCount: category.post_count,
+            userCount: category.user_count || 0,
+          }
+        }
+
+        // Извличаме броя на постовете без филтриране по is_archived
+        const { count, error: postError } = await supabase
           .from("posts")
-          .select("id, author_id")
+          .select("*", { count: "exact", head: true })
           .eq("category_id", category.id)
 
         if (postError) {
-          console.error(`Error fetching posts for category ${category.id}:`, postError)
+          console.error(`Error counting posts for category ${category.id}:`, postError)
           return { ...category, postCount: 0, userCount: 0 }
         }
 
-        // Изчисляваме броя на постовете
-        const postCount = posts.length
+        // Извличаме броя на уникалните потребители
+        const { data: uniqueUsers, error: userError } = await supabase
+          .from("posts")
+          .select("author_id")
+          .eq("category_id", category.id)
 
-        // Изчисляваме броя на уникалните потребители
-        const uniqueUsers = new Set(posts.map((post) => post.author_id))
-        const userCount = uniqueUsers.size
+        if (userError) {
+          console.error(`Error counting users for category ${category.id}:`, userError)
+          return { ...category, postCount: count || 0, userCount: 0 }
+        }
 
-        console.log(`Category ${category.name}: ${postCount} posts, ${userCount} users`)
+        const uniqueUserIds = new Set(uniqueUsers.map((post) => post.author_id))
+        const userCount = uniqueUserIds.size
 
         return {
           ...category,
-          postCount,
+          postCount: count || 0,
           userCount,
         }
       } catch (error) {
@@ -53,6 +67,7 @@ export const getCategories = cache(async () => {
   return categoriesWithCounts
 })
 
+// Останалата част от файла остава непроменена
 export const getCategoryBySlug = cache(async (slugOrId: string) => {
   const supabase = createServerClient()
 
@@ -86,6 +101,7 @@ export const getCategoryBySlug = cache(async (slugOrId: string) => {
 export const getRecentPosts = cache(async (limit = 10) => {
   const supabase = createServerClient()
 
+  // Премахваме филтъра за is_archived
   const { data, error } = await supabase
     .from("posts")
     .select(`
@@ -95,8 +111,6 @@ export const getRecentPosts = cache(async (limit = 10) => {
       comments:comments(count),
       votes:post_votes(count)
     `)
-    // Temporarily remove is_archived filter until the column exists
-    // .eq("is_archived", false)
     .order("created_at", { ascending: false })
     .limit(limit)
 
@@ -130,7 +144,7 @@ export const getRecentPosts = cache(async (limit = 10) => {
 export const getPopularPosts = cache(async (limit = 10) => {
   const supabase = createServerClient()
 
-  // First get all posts with their metadata
+  // Премахваме филтъра за is_archived
   const { data, error } = await supabase
     .from("posts")
     .select(`
@@ -140,8 +154,6 @@ export const getPopularPosts = cache(async (limit = 10) => {
       comments:comments(count),
       votes:post_votes(count)
     `)
-    // Temporarily remove is_archived filter until the column exists
-    // .eq("is_archived", false)
     .order("created_at", { ascending: false })
 
   if (error) {
@@ -183,6 +195,7 @@ export const getPopularPosts = cache(async (limit = 10) => {
 export const getPostsByCategory = cache(async (categoryId: string, limit = 20) => {
   const supabase = createServerClient()
 
+  // Премахваме филтъра за is_archived
   const { data, error } = await supabase
     .from("posts")
     .select(`
@@ -193,8 +206,6 @@ export const getPostsByCategory = cache(async (categoryId: string, limit = 20) =
       votes:post_votes(count)
     `)
     .eq("category_id", categoryId)
-    // Temporarily remove is_archived filter until the column exists
-    // .eq("is_archived", false)
     .order("created_at", { ascending: false })
     .limit(limit)
 
@@ -478,7 +489,7 @@ export const searchPosts = async (query: string, limit = 20) => {
 
   console.log("Searching posts with query:", query)
 
-  // Използваме ilike за case-insensitive търсене и % за частично съвпадение
+  // Премахваме филтъра за is_archived
   const { data, error } = await supabase
     .from("posts")
     .select(`
@@ -487,8 +498,6 @@ export const searchPosts = async (query: string, limit = 20) => {
       category:categories(*),
       comments:comments(count)
     `)
-    // Temporarily remove is_archived filter until the column exists
-    // .eq("is_archived", false)
     .or(`title.ilike.%${query}%,content.ilike.%${query}%`)
     .order("created_at", { ascending: false })
     .limit(limit)

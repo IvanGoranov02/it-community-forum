@@ -6,94 +6,121 @@ import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { LogOut, Settings, UserCircle, FileText, Shield } from "lucide-react"
-import { signOut } from "@/app/actions/auth"
+import { logout } from "@/app/actions/auth"
+import { LogOut, Settings, MessageSquare, UserCircle, Bookmark, Shield } from "lucide-react"
 
 interface UserMenuProps {
   user: {
     id: string
     name: string
     email: string
+    username: string
+    avatar?: string
     role?: string
   } | null
 }
 
 export function UserMenu({ user }: UserMenuProps) {
-  const handleSignOut = async () => {
-    await signOut()
-  }
-
   if (!user) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-4">
         <Link href="/login">
-          <Button variant="outline" size="sm">
-            Sign In
-          </Button>
+          <Button variant="ghost">Sign In</Button>
         </Link>
         <Link href="/register">
-          <Button size="sm">Register</Button>
+          <Button>Register</Button>
         </Link>
       </div>
     )
   }
 
+  const isAdmin = user.role === "admin"
+  const isModerator = user.role === "moderator"
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={`/abstract-geometric-shapes.png?height=32&width=32&query=${user.name}`} alt={user.name} />
-            <AvatarFallback>{user.name.charAt(0).toUpperCase()}</AvatarFallback>
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+          <Avatar className="h-10 w-10">
+            <AvatarImage
+              src={user.avatar || `/placeholder.svg?height=40&width=40&query=${user.name}`}
+              alt={user.name}
+            />
+            <AvatarFallback>{user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="w-56" align="end" forceMount>
-        <DropdownMenuLabel className="font-normal">
-          <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">{user.name}</p>
-            <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
+      <DropdownMenuContent className="w-56" align="end">
+        <div className="flex items-center justify-start gap-2 p-2">
+          <div className="flex flex-col space-y-0.5 leading-none">
+            <p className="font-medium text-sm">{user.name}</p>
+            <p className="text-xs text-muted-foreground">{user.email}</p>
           </div>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href={`/profile/${user.name}`} className="cursor-pointer">
-              <UserCircle className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/my-posts" className="cursor-pointer">
-              <FileText className="mr-2 h-4 w-4" />
-              <span>My Posts</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild>
-            <Link href="/profile/edit" className="cursor-pointer">
-              <Settings className="mr-2 h-4 w-4" />
-              <span>Edit Profile</span>
-            </Link>
-          </DropdownMenuItem>
-          {user.role === "admin" && (
+        <DropdownMenuItem asChild>
+          <Link href={`/profile/${user.username}`} className="cursor-pointer flex w-full items-center">
+            <UserCircle className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/my-posts" className="cursor-pointer flex w-full items-center">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            <span>My Posts</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/bookmarks" className="cursor-pointer flex w-full items-center">
+            <Bookmark className="mr-2 h-4 w-4" />
+            <span>Bookmarks</span>
+          </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/simple-edit" className="cursor-pointer flex w-full items-center">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Edit Profile</span>
+          </Link>
+        </DropdownMenuItem>
+
+        {/* Показване на връзка към админ панела само за администратори */}
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
-              <Link href="/admin" className="cursor-pointer">
+              <Link href="/admin" className="cursor-pointer flex w-full items-center">
                 <Shield className="mr-2 h-4 w-4" />
-                <span>Admin Dashboard</span>
+                <span>Admin Panel</span>
               </Link>
             </DropdownMenuItem>
-          )}
-        </DropdownMenuGroup>
+          </>
+        )}
+
+        {/* Показване на връзка към модераторския панел само за модератори */}
+        {isModerator && !isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href="/admin/moderation" className="cursor-pointer flex w-full items-center">
+                <Shield className="mr-2 h-4 w-4" />
+                <span>Moderation</span>
+              </Link>
+            </DropdownMenuItem>
+          </>
+        )}
+
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
-          <LogOut className="mr-2 h-4 w-4" />
-          <span>Log out</span>
+        <DropdownMenuItem asChild>
+          <form action={logout} className="w-full">
+            <button type="submit" className="flex w-full items-center">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+            </button>
+          </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -9,9 +9,11 @@ import { updateProfile } from "@/app/actions/profile"
 import { useActionState } from "react"
 import Link from "next/link"
 import { AvatarUpload } from "@/components/avatar-upload"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 
-const initialState = { error: "" }
+const initialState = { error: "", success: false, username: "" }
 
 interface ProfileEditFormProps {
   user: {
@@ -24,8 +26,19 @@ interface ProfileEditFormProps {
 }
 
 export function ProfileEditForm({ user }: ProfileEditFormProps) {
+  const router = useRouter()
   const [state, formAction, isPending] = useActionState(updateProfile, initialState)
   const [avatarUrl, setAvatarUrl] = useState(user.avatar || "")
+
+  useEffect(() => {
+    if (state.success && state.username) {
+      toast({
+        title: "Profile updated",
+        description: "Your profile has been updated successfully.",
+      })
+      router.push(`/profile/${state.username}`)
+    }
+  }, [state.success, state.username, router])
 
   const handleAvatarChange = (url: string) => {
     setAvatarUrl(url)
