@@ -25,13 +25,15 @@ export default async function SettingsPage() {
   }
 
   return (
-    <div className="container max-w-4xl py-10">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Настройки на акаунта</h1>
-        <p className="text-muted-foreground">Управлявайте настройките на вашия акаунт и предпочитания.</p>
-      </div>
+    <div className="flex min-h-screen items-center justify-center">
+      <div className="container max-w-4xl py-10">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold">Настройки на акаунта</h1>
+          <p className="text-muted-foreground">Управлявайте настройките на вашия акаунт и предпочитания.</p>
+        </div>
 
-      <UserSettingsForm initialSettings={settings} />
+        <UserSettingsForm initialSettings={settings} />
+      </div>
     </div>
   )
 }

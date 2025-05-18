@@ -1,12 +1,10 @@
 "use server"
 
-import { createClient } from "@/lib/supabase"
+import { createServerClient } from "@/lib/supabase"
 import { revalidatePath } from "next/cache"
-import { cookies } from "next/headers"
 
 export async function getUserSettings() {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createServerClient()
 
   const {
     data: { session },
@@ -39,8 +37,7 @@ export async function updateUserSettings(settings: {
   theme: string
   language: string
 }) {
-  const cookieStore = cookies()
-  const supabase = createClient(cookieStore)
+  const supabase = createServerClient()
 
   const {
     data: { session },
