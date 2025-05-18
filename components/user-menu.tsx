@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { logout } from "@/app/actions/auth"
 import { LogOut, Settings, MessageSquare, UserCircle, Bookmark, Shield } from "lucide-react"
+import { useLoading } from "@/app/context/loading-context"
+import { useRouter } from "next/navigation"
 
 interface UserMenuProps {
   user: {
@@ -41,6 +43,26 @@ export function UserMenu({ user }: UserMenuProps) {
   const isAdmin = user.role === "admin"
   const isModerator = user.role === "moderator"
 
+  const { startLoading, stopLoading } = useLoading()
+  const router = useRouter()
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    startLoading("Logging out...")
+    try {
+      await logout()
+      localStorage.removeItem("supabase-auth")
+      window.location.reload()
+    } finally {
+      stopLoading()
+    }
+  }
+
+  const handleNavigate = (href: string) => (e: React.MouseEvent) => {
+    startLoading("Loading...")
+    router.push(href)
+  }
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -62,40 +84,35 @@ export function UserMenu({ user }: UserMenuProps) {
           </div>
         </div>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <Link href={`/profile/${user.username}`} className="cursor-pointer flex w-full items-center">
+        <DropdownMenuItem>
+          <button onClick={handleNavigate(`/profile/${user.username}`)} className="cursor-pointer flex w-full items-center">
             <UserCircle className="mr-2 h-4 w-4" />
             <span>Profile</span>
-          </Link>
+          </button>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/my-posts" className="cursor-pointer flex w-full items-center">
+        <DropdownMenuItem>
+          <button onClick={handleNavigate("/my-posts")} className="cursor-pointer flex w-full items-center">
             <MessageSquare className="mr-2 h-4 w-4" />
             <span>My Posts</span>
-          </Link>
+          </button>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/bookmarks" className="cursor-pointer flex w-full items-center">
+        <DropdownMenuItem>
+          <button onClick={handleNavigate("/bookmarks")} className="cursor-pointer flex w-full items-center">
             <Bookmark className="mr-2 h-4 w-4" />
             <span>Bookmarks</span>
-          </Link>
+          </button>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/simple-edit" className="cursor-pointer flex w-full items-center">
-            <Settings className="mr-2 h-4 w-4" />
-            <span>Edit Profile</span>
-          </Link>
-        </DropdownMenuItem>
+  
 
         {/* Показване на връзка към админ панела само за администратори */}
         {isAdmin && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/admin" className="cursor-pointer flex w-full items-center">
+            <DropdownMenuItem>
+              <button onClick={handleNavigate("/admin")} className="cursor-pointer flex w-full items-center">
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Admin Panel</span>
-              </Link>
+              </button>
             </DropdownMenuItem>
           </>
         )}
@@ -104,23 +121,21 @@ export function UserMenu({ user }: UserMenuProps) {
         {isModerator && !isAdmin && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link href="/admin/moderation" className="cursor-pointer flex w-full items-center">
+            <DropdownMenuItem>
+              <button onClick={handleNavigate("/admin/moderation")} className="cursor-pointer flex w-full items-center">
                 <Shield className="mr-2 h-4 w-4" />
                 <span>Moderation</span>
-              </Link>
+              </button>
             </DropdownMenuItem>
           </>
         )}
 
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
-          <form action={logout} className="w-full">
-            <button type="submit" className="flex w-full items-center">
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </button>
-          </form>
+          <button onClick={handleLogout} className="flex w-full items-center">
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Log out</span>
+          </button>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

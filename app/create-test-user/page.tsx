@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DebugInfo } from "@/components/debug-info"
+import { useLoading } from "@/app/context/loading-context"
 
 export default function CreateTestUserPage() {
   const [result, setResult] = useState<any>(null)
@@ -19,9 +20,10 @@ export default function CreateTestUserPage() {
   const [debugInfo, setDebugInfo] = useState<any>(null)
   const router = useRouter()
   const { toast } = useToast()
+  const { startLoading, stopLoading } = useLoading()
 
   const handleCreateUser = async () => {
-    setIsLoading(true)
+    startLoading("Creating test user...")
     setResult(null)
     setDebugInfo(null)
 
@@ -45,7 +47,6 @@ export default function CreateTestUserPage() {
           title: "Success",
           description: "User already exists and credentials are valid",
         })
-        setIsLoading(false)
         return
       }
 
@@ -68,7 +69,6 @@ export default function CreateTestUserPage() {
           description: signUpError.message,
           variant: "destructive",
         })
-        setIsLoading(false)
         return
       }
 
@@ -80,7 +80,6 @@ export default function CreateTestUserPage() {
           description: "Failed to create user",
           variant: "destructive",
         })
-        setIsLoading(false)
         return
       }
 
@@ -149,12 +148,12 @@ export default function CreateTestUserPage() {
         variant: "destructive",
       })
     } finally {
-      setIsLoading(false)
+      stopLoading()
     }
   }
 
   const handleLoginWithTestUser = async () => {
-    setIsLoading(true)
+    startLoading("Logging in...")
     try {
       const supabase = createBrowserClient()
 
@@ -194,7 +193,7 @@ export default function CreateTestUserPage() {
       })
       setDebugInfo({ unexpectedLoginError: error })
     } finally {
-      setIsLoading(false)
+      stopLoading()
     }
   }
 
@@ -261,12 +260,12 @@ export default function CreateTestUserPage() {
           {debugInfo && <DebugInfo title="Debug Information" data={debugInfo} />}
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button onClick={handleCreateUser} disabled={isLoading} className="w-full">
-            {isLoading ? "Creating..." : "Create Test User"}
+          <Button onClick={handleCreateUser} className="w-full" type="button">
+            Create Test User
           </Button>
 
           {result?.success && (
-            <Button onClick={handleLoginWithTestUser} variant="secondary" className="w-full">
+            <Button onClick={handleLoginWithTestUser} className="w-full" type="button">
               Login with Test User
             </Button>
           )}

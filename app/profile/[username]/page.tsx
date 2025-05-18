@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { formatDate } from "@/lib/utils"
+import { ChevronLeft } from "lucide-react"
 
 type Props = {
   params: { username: string }
@@ -56,8 +57,16 @@ export default async function ProfilePage({ params }: Props) {
   const isOwnProfile = currentUser?.id === profile.id
 
   return (
-    <div className="container py-10">
-      <Card className="mb-8">
+    <div className="container min-h-screen flex flex-col items-center justify-center py-10">
+      <div className="w-full max-w-4xl mb-4 flex">
+        <Link href="/" className="flex items-center gap-2">
+          <Button variant="outline" size="sm" className="flex items-center">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back
+          </Button>
+        </Link>
+      </div>
+      <Card className="mb-8 max-w-4xl w-full">
         <CardHeader className="flex flex-row items-center gap-4">
           <Avatar className="h-20 w-20">
             <AvatarImage src={profile.avatar_url || `/placeholder.svg?height=80&width=80&query=${profile.full_name}`} />
@@ -99,7 +108,7 @@ export default async function ProfilePage({ params }: Props) {
         </CardContent>
       </Card>
 
-      <div className="grid gap-8 md:grid-cols-2">
+      <div className="grid gap-8 md:grid-cols-2 max-w-4xl w-full">
         <Card>
           <CardHeader>
             <CardTitle>Recent Posts</CardTitle>

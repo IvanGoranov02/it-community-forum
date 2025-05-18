@@ -12,11 +12,12 @@ import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
+import { useLoading } from "@/app/context/loading-context"
 
 export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
   const router = useRouter()
   const { toast } = useToast()
-  const [isLoading, setIsLoading] = useState(false)
+  const { startLoading, stopLoading } = useLoading()
   const [errorMessage, setErrorMessage] = useState("")
   const [email, setEmail] = useState("")
   const [name, setName] = useState("")
@@ -26,13 +27,13 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    startLoading("Registering...")
     setErrorMessage("")
     setDebugInfo(null)
 
     if (!email || !name || !password) {
       setErrorMessage("All fields are required")
-      setIsLoading(false)
+      stopLoading()
       return
     }
 
@@ -53,13 +54,13 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       if (checkError) {
         setErrorMessage("Error checking username availability")
         setDebugInfo({ checkError })
-        setIsLoading(false)
+        stopLoading()
         return
       }
 
       if (existingUser) {
         setErrorMessage("Username is already taken. Please choose another one.")
-        setIsLoading(false)
+        stopLoading()
         return
       }
 
@@ -82,13 +83,13 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         console.error("Auth error during registration:", authError)
         setErrorMessage(authError.message || "Failed to create user")
         setDebugInfo({ authError })
-        setIsLoading(false)
+        stopLoading()
         return
       }
 
       if (!authData.user) {
         setErrorMessage("Failed to create user")
-        setIsLoading(false)
+        stopLoading()
         return
       }
 
@@ -107,7 +108,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         console.error("Profile error during registration:", profileError)
         setErrorMessage(profileError.message)
         setDebugInfo({ profileError })
-        setIsLoading(false)
+        stopLoading()
         return
       }
 
@@ -123,7 +124,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       console.error("Unexpected error during registration:", error)
       setErrorMessage("An unexpected error occurred during registration")
       setDebugInfo({ unexpectedError: error })
-      setIsLoading(false)
+      stopLoading()
     }
   }
 
@@ -190,8 +191,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
           {debugInfo && <DebugInfo title="Debug Information" data={debugInfo} />}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Creating Account..." : "Register"}
+          <Button type="submit" className="w-full">
+            Register
           </Button>
           <div className="text-center text-sm">
             Already have an account?{" "}
