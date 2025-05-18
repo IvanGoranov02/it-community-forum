@@ -93,3 +93,125 @@ export async function updateProfile(prevState: any, formData: FormData) {
     return { error: "An unexpected error occurred while updating your profile" }
   }
 }
+
+/**
+ * Извлича информация за профил по ID
+ * @param profileId ID на профила
+ * @returns Информация за профила или грешка
+ */
+export async function getProfileById(profileId: string) {
+  try {
+    const supabase = createServerClient();
+    // Извличаме профила
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        username,
+        full_name,
+        avatar_url,
+        bio,
+        role,
+        reputation,
+        created_at,
+        updated_at
+      `)
+      .eq("id", profileId)
+      .maybeSingle();
+    if (error) {
+      console.error("Error fetching profile by ID:", error);
+      return { success: false, error: error.message };
+    }
+    if (!profile) {
+      return { success: false, error: "Profile not found" };
+    }
+    // Извличаме броя на постовете на потребителя
+    const { count: postCount, error: postError } = await supabase
+      .from("posts")
+      .select("*", { count: "exact", head: true })
+      .eq("author_id", profileId);
+    if (postError) {
+      console.error("Error counting posts for profile:", postError);
+    }
+    // Извличаме броя на коментарите на потребителя
+    const { count: commentCount, error: commentError } = await supabase
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .eq("author_id", profileId);
+    if (commentError) {
+      console.error("Error counting comments for profile:", commentError);
+    }
+    return {
+      success: true,
+      profile: {
+        ...profile,
+        postCount: postCount || 0,
+        commentCount: commentCount || 0
+      }
+    };
+  } catch (error) {
+    console.error("Unexpected error fetching profile by ID:", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
+/**
+ * Извлича информация за профил по потребителско име
+ * @param username Потребителско име
+ * @returns Информация за профила или грешка
+ */
+export async function getProfileByUsername(username: string) {
+  try {
+    const supabase = createServerClient();
+    // Извличаме профила
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select(`
+        id,
+        username,
+        full_name,
+        avatar_url,
+        bio,
+        role,
+        reputation,
+        created_at,
+        updated_at
+      `)
+      .eq("username", username)
+      .maybeSingle();
+    if (error) {
+      console.error("Error fetching profile by username:", error);
+      return { success: false, error: error.message };
+    }
+    if (!profile) {
+      return { success: false, error: "Profile not found" };
+    }
+    // Извличаме броя на постовете на потребителя
+    const { count: postCount, error: postError } = await supabase
+      .from("posts")
+      .select("*", { count: "exact", head: true })
+      .eq("author_id", profile.id);
+    if (postError) {
+      console.error("Error counting posts for profile:", postError);
+    }
+    // Извличаме броя на коментарите на потребителя
+    const { count: commentCount, error: commentError } = await supabase
+      .from("comments")
+      .select("*", { count: "exact", head: true })
+      .eq("author_id", profile.id);
+    if (commentError) {
+      console.error("Error counting comments for profile:", commentError);
+    }
+    return {
+      success: true,
+      profile: {
+        ...profile,
+        postCount: postCount || 0,
+        commentCount: commentCount || 0
+      }
+    };
+  } catch (error) {
+    console.error("Unexpected error fetching profile by username:", error);
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}

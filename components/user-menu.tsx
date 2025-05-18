@@ -59,7 +59,6 @@ export function UserMenu({ user }: UserMenuProps) {
   }
 
   const handleNavigate = (href: string) => (e: React.MouseEvent) => {
-    startLoading("Loading...")
     router.push(href)
   }
 

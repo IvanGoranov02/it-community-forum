@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import { useState } from "react"
 
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -9,6 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Eye, MessageSquare, Flame, ThumbsUp } from "lucide-react"
 import { formatDate } from "@/lib/utils"
+import { ProfilePopup } from "@/components/ProfilePopup"
 
 interface ForumPostProps {
   id: string
@@ -40,9 +42,10 @@ export function ForumPost({
   isHot = false,
 }: ForumPostProps) {
   const router = useRouter()
+  const [profilePopupOpen, setProfilePopupOpen] = useState(false)
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Only navigate if the click wasn't on a link
+    if (profilePopupOpen) return // Prevent navigation if popup is open
     if (!(e.target as HTMLElement).closest("a")) {
       router.push(`/post/${slug}`)
     }
@@ -55,10 +58,14 @@ export function ForumPost({
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-4">
-          <Avatar className="h-10 w-10 border">
-            <AvatarImage src={`/abstract-geometric-shapes.png?height=40&width=40&query=${author}`} alt={author} />
-            <AvatarFallback>{author.slice(0, 2).toUpperCase()}</AvatarFallback>
-          </Avatar>
+          <ProfilePopup username={author} open={profilePopupOpen} setOpen={setProfilePopupOpen}>
+            <span onClick={e => e.stopPropagation()}>
+              <Avatar className="h-10 w-10 border">
+                <AvatarImage src={`/abstract-geometric-shapes.png?height=40&width=40&query=${author}`} alt={author} />
+                <AvatarFallback>{author.slice(0, 2).toUpperCase()}</AvatarFallback>
+              </Avatar>
+            </span>
+          </ProfilePopup>
           <div className="space-y-1 flex-1">
             <div className="flex items-center gap-2">
               <h3 className="font-semibold text-lg hover:text-primary transition-colors">{title}</h3>
@@ -73,13 +80,11 @@ export function ForumPost({
               )}
             </div>
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Link
-                href={`/profile/${author}`}
-                className="hover:underline hover:text-primary"
-                onClick={(e) => e.stopPropagation()}
-              >
-                by {author}
-              </Link>
+              <ProfilePopup username={author} open={profilePopupOpen} setOpen={setProfilePopupOpen}>
+                <span className="hover:underline hover:text-primary cursor-pointer" onClick={e => e.stopPropagation()}>
+                  by {author}
+                </span>
+              </ProfilePopup>
               <span>•</span>
               <Link href={`/category/${categoryId}`} onClick={(e) => e.stopPropagation()}>
                 <Badge variant="secondary" className="hover:bg-secondary/80">

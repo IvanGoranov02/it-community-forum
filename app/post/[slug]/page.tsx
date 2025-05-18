@@ -19,6 +19,7 @@ import { PostTags } from "@/components/post-tags"
 import { PostContent } from "@/components/post-content"
 import { ReportDialog } from "@/components/report-dialog"
 import { PostActions } from "@/components/post-actions"
+import { ProfilePopup } from "@/components/ProfilePopup"
 
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
@@ -82,19 +83,25 @@ export default async function PostPage({ params }: PostPageProps) {
           <Card className="border-l-4 border-l-primary overflow-hidden">
             <CardHeader className="flex flex-row items-start justify-between gap-4 p-6 bg-muted/30">
               <div className="flex items-start gap-4">
-                <Avatar className="h-12 w-12 border">
-                  <AvatarImage
-                    src={
-                      post.author?.avatar_url ||
-                      `/placeholder.svg?height=48&width=48&query=${post.author?.username || "user"}`
-                    }
-                    alt={post.author?.username || "User"}
-                  />
-                  <AvatarFallback>{post.author?.username?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
-                </Avatar>
+                <ProfilePopup username={post.author?.username}>
+                  <Avatar className="h-12 w-12 border group-hover:ring-2 group-hover:ring-primary transition">
+                    <AvatarImage
+                      src={
+                        post.author?.avatar_url ||
+                        `/placeholder.svg?height=48&width=48&query=${post.author?.username || "user"}`
+                      }
+                      alt={post.author?.username || "User"}
+                    />
+                    <AvatarFallback>{post.author?.username?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
+                  </Avatar>
+                </ProfilePopup>
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <h3 className="font-semibold">{post.author?.username || "Unknown User"}</h3>
+                    <ProfilePopup username={post.author?.username}>
+                      <span className="font-semibold hover:underline hover:text-primary transition-colors cursor-pointer">
+                        {post.author?.username || "Unknown User"}
+                      </span>
+                    </ProfilePopup>
                     <Badge variant="outline" className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300">
                       {post.author?.role === "admin"
                         ? "Admin"
@@ -147,19 +154,25 @@ export default async function PostPage({ params }: PostPageProps) {
             comments.map((comment) => (
               <Card key={comment.id} id={`comment-${comment.id}`} className="border-l-4 border-l-secondary/70">
                 <CardHeader className="flex flex-row items-start gap-4 p-6 bg-muted/20">
-                  <Avatar className="h-10 w-10 border">
-                    <AvatarImage
-                      src={
-                        comment.author?.avatar_url ||
-                        `/placeholder.svg?height=40&width=40&query=${comment.author?.username || "user"}`
-                      }
-                      alt={comment.author?.username || "User"}
-                    />
-                    <AvatarFallback>{comment.author?.username?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
-                  </Avatar>
+                  <ProfilePopup username={comment.author?.username}>
+                    <Avatar className="h-10 w-10 border group-hover:ring-2 group-hover:ring-primary transition">
+                      <AvatarImage
+                        src={
+                          comment.author?.avatar_url ||
+                          `/placeholder.svg?height=40&width=40&query=${comment.author?.username || "user"}`
+                        }
+                        alt={comment.author?.username || "User"}
+                      />
+                      <AvatarFallback>{comment.author?.username?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
+                    </Avatar>
+                  </ProfilePopup>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{comment.author?.username || "Unknown User"}</h3>
+                      <ProfilePopup username={comment.author?.username}>
+                        <span className="font-semibold hover:underline hover:text-primary transition-colors cursor-pointer">
+                          {comment.author?.username || "Unknown User"}
+                        </span>
+                      </ProfilePopup>
                       <Badge
                         variant="outline"
                         className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
