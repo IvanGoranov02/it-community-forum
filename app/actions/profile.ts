@@ -5,7 +5,7 @@ import { getUser } from "@/app/actions/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 
-export async function updateProfile(formData: FormData) {
+export async function updateProfile(prevState: any, formData: FormData) {
   const user = await getUser()
 
   if (!user) {
