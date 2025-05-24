@@ -3,7 +3,19 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
+  background-color: #181c24;
+  background-image: url('data:image/svg+xml;utf8,<svg width="120" height="120" xmlns="http://www.w3.org/2000/svg"><g opacity="0.10"><rect x="10" y="10" width="18" height="18" rx="4" fill="%2300e1ff"/><rect x="80" y="80" width="18" height="18" rx="4" fill="%236f00ff"/><path d="M30 60 h60 v10 h-60 z" fill="%23fff"/><rect x="40" y="40" width="40" height="24" rx="4" fill="%2300e1ff"/><rect x="50" y="50" width="20" height="4" rx="2" fill="%23fff"/><circle cx="100" cy="30" r="10" fill="%236f00ff"/><rect x="20" y="100" width="30" height="8" rx="4" fill="%23fff"/><path d="M90 20 h10 v10 h-10 z" fill="%23fff"/><path d="M15 80 q10 -10 20 0 t20 0" stroke="%2300e1ff" stroke-width="2" fill="none"/><rect x="70" y="15" width="10" height="10" rx="2" fill="%23fff"/><rect x="60" y="100" width="30" height="8" rx="4" fill="%236f00ff"/></g></svg>');
+  background-repeat: repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+.card, .bg-card, .bg-muted, .bg-muted\/20, .bg-muted\/30 {
+  border-radius: 1.2rem !important;
+  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.14), 0 1.5px 6px 0 rgba(0,0,0,0.10), 0 0 16px 0 #00e1ff33;
+  backdrop-filter: blur(2px);
+  border: 1.5px solid #00e1ff22;
 }
 
 @layer utilities {
