@@ -27,6 +27,35 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <div className="terminal-bg" aria-hidden="true">
+          <div className="terminal-window">
+            <div className="terminal-bar">
+              <span className="dot red"></span>
+              <span className="dot yellow"></span>
+              <span className="dot green"></span>
+            </div>
+            <pre className="terminal-code">
+{`$ npm run dev
+> next dev
+
+Compiling...
+
+[1] Starting development server...
+[2] Connecting to database...
+[3] Listening on http://localhost:3000
+
+const user = await getUser();
+console.log('Welcome to TechTalk!');
+
+function sum(a, b) {
+  return a + b;
+}
+
+sum(42, 27); // 69
+`}
+            </pre>
+          </div>
+        </div>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LoadingProvider>
             <AuthProvider initialUser={user}>{children}</AuthProvider>

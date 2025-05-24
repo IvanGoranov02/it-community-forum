@@ -104,3 +104,64 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.terminal-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  pointer-events: none;
+  opacity: 0.22;
+  filter: blur(0.5px);
+}
+
+.terminal-window {
+  background: rgba(20, 24, 34, 0.92);
+  border-radius: 1.2rem;
+  box-shadow: 0 8px 40px 0 #00e1ff33, 0 1.5px 6px 0 #6f00ff22;
+  border: 1.5px solid #00e1ff33;
+  min-width: 420px;
+  max-width: 40vw;
+  min-height: 320px;
+  margin: 2vw 3vw 3vw 0;
+  overflow: hidden;
+  font-family: 'Fira Mono', 'Consolas', monospace;
+  pointer-events: none;
+}
+
+.terminal-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5em;
+  padding: 0.5em 1em;
+  background: linear-gradient(90deg, #181c24 80%, #00e1ff22 100%);
+}
+.terminal-bar .dot {
+  width: 0.8em;
+  height: 0.8em;
+  border-radius: 50%;
+  display: inline-block;
+}
+.terminal-bar .red { background: #ff5f56; }
+.terminal-bar .yellow { background: #ffbd2e; }
+.terminal-bar .green { background: #27c93f; }
+
+.terminal-code {
+  color: #e0e7ef;
+  font-size: 1.05em;
+  padding: 1.2em 1.5em;
+  white-space: pre-line;
+  overflow: hidden;
+  min-height: 260px;
+  background: none;
+  border: none;
+  animation: typing 8s steps(60, end) infinite alternate;
+  mask-image: linear-gradient(to bottom, #fff 80%, transparent 100%);
+}
+
+@keyframes typing {
+  from { width: 0; }
+  to { width: 100%; }
+}
