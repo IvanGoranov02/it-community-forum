@@ -55,10 +55,6 @@ export default async function Home() {
           </Button>
         </Link>
         <Link href="/debug/sql-create-user">
-          <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
-            <Bug className="h-4 w-4" />
-            Create Test User
-          </Button>
         </Link>
         <Link href="/simple-login">
           <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
