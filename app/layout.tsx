@@ -5,6 +5,7 @@ import { AuthProvider } from "@/app/context/auth-context"
 import { LoadingProvider } from "@/app/context/loading-context"
 import { getUser } from "@/app/actions/auth"
 import "./globals.css"
+import { GlobalLoader } from "../src/components/GlobalLoader"
 
 // Mark this layout as dynamic
 export const dynamic = "force-dynamic"
@@ -27,6 +28,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <GlobalLoader />
         <div className="terminal-bg" aria-hidden="true">
           <div className="terminal-window">
             <div className="terminal-bar">

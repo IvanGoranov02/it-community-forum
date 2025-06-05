@@ -16,14 +16,14 @@ import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions
 export const dynamic = "force-dynamic"
 
 export default async function Home() {
-  const user = await getUser()
-  const categories = await getCategories()
-  const recentPosts = await getRecentPosts(6)
-  const popularPosts = await getPopularPosts(5)
+  const user: any = await getUser()
+  const categories: any = await getCategories()
+  const recentPosts: any = await getRecentPosts(6)
+  const popularPosts: any = await getPopularPosts(5)
 
   // Get notifications if user is logged in
-  const notifications = user ? await getUserNotifications(10) : []
-  const unreadCount = user ? await getUnreadNotificationsCount() : 0
+  const notifications: any = user ? await getUserNotifications(10) : []
+  const unreadCount: any = user ? await getUnreadNotificationsCount() : 0
 
   console.log("Categories with counts:", categories)
 
@@ -89,7 +89,7 @@ export default async function Home() {
         </TabsList>
         <TabsContent value="categories">
           <div className="grid gap-6">
-            {categories.map((category) => (
+            {categories.map((category: any) => (
               <ForumCategory
                 key={category.id}
                 id={category.id}
@@ -106,7 +106,7 @@ export default async function Home() {
         </TabsContent>
         <TabsContent value="recent">
           <div className="grid gap-4">
-            {recentPosts.map((post) => (
+            {recentPosts.map((post: any) => (
               <ForumPost
                 key={post.id}
                 id={post.id}
@@ -134,7 +134,7 @@ export default async function Home() {
         </TabsContent>
         <TabsContent value="popular">
           <div className="grid gap-4">
-            {popularPosts.map((post) => (
+            {popularPosts.map((post: any) => (
               <ForumPost
                 key={post.id}
                 id={post.id}
