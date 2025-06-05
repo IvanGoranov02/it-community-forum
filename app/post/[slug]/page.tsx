@@ -20,6 +20,7 @@ import { PostContent } from "@/components/post-content"
 import { ReportDialog } from "@/components/report-dialog"
 import { PostActions } from "@/components/post-actions"
 import { ProfilePopup } from "@/components/ProfilePopup"
+import { CommentSection } from "../../../src/components/comment-section"
 
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
@@ -150,115 +151,12 @@ export default async function PostPage({ params }: PostPageProps) {
             Replies ({comments.length})
           </h2>
 
-          {comments.length > 0 ? (
-            comments.map((comment) => (
-              <Card key={comment.id} id={`comment-${comment.id}`} className="border-l-4 border-l-secondary/70">
-                <CardHeader className="flex flex-row items-start gap-4 p-6 bg-muted/20">
-                  <ProfilePopup username={comment.author?.username}>
-                    <Avatar className="h-10 w-10 border group-hover:ring-2 group-hover:ring-primary transition">
-                      <AvatarImage
-                        src={
-                          comment.author?.avatar_url ||
-                          `/placeholder.svg?height=40&width=40&query=${comment.author?.username || "user"}`
-                        }
-                        alt={comment.author?.username || "User"}
-                      />
-                      <AvatarFallback>{comment.author?.username?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
-                    </Avatar>
-                  </ProfilePopup>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <ProfilePopup username={comment.author?.username}>
-                        <span className="font-semibold hover:underline hover:text-primary transition-colors cursor-pointer">
-                          {comment.author?.username || "Unknown User"}
-                        </span>
-                      </ProfilePopup>
-                      <Badge
-                        variant="outline"
-                        className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                      >
-                        {comment.author?.role === "admin"
-                          ? "Admin"
-                          : comment.author?.role === "moderator"
-                            ? "Moderator"
-                            : "Member"}
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{formatDate(comment.created_at)}</p>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-6 py-4">
-                  <div className="prose dark:prose-invert max-w-none">
-                    <PostContent content={comment.content} />
-                  </div>
-                </CardContent>
-                <CardFooter className="flex justify-between p-6 border-t bg-muted/10">
-                  <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                      <MessageSquare className="h-4 w-4" />
-                      <span>Reply</span>
-                    </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <ReportDialog contentType="comment" contentId={comment.id}>
-                      <Button variant="ghost" size="icon">
-                        <Flag className="h-4 w-4" />
-                      </Button>
-                    </ReportDialog>
-                  </div>
-                </CardFooter>
-              </Card>
-            ))
-          ) : (
-            <Card className="border border-dashed">
-              <CardContent className="p-6 text-center">
-                <p className="text-muted-foreground">No replies yet. Be the first to reply!</p>
-              </CardContent>
-            </Card>
-          )}
-
-          <Separator className="my-4" />
-
-          {user ? (
-            <div className="space-y-4 bg-muted/20 p-6 rounded-lg border">
-              <h3 className="text-lg font-medium flex items-center gap-2">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                Add Your Reply
-              </h3>
-              <form action={createNewComment}>
-                <input type="hidden" name="postId" value={post.id} />
-                <input type="hidden" name="slug" value={resolvedParams.slug} />
-                <Textarea
-                  name="content"
-                  placeholder="Share your thoughts... Use @username to mention users"
-                  className="min-h-[150px] focus-visible:ring-primary"
-                  required
-                />
-                <div className="flex justify-end mt-4">
-                  <Button type="submit" className="bg-primary hover:bg-primary/90">
-                    Post Reply
-                  </Button>
-                </div>
-              </form>
-            </div>
-          ) : (
-            <Card className="border-dashed">
-              <CardContent className="p-6">
-                <div className="text-center space-y-4">
-                  <h3 className="text-lg font-medium">Join the conversation</h3>
-                  <p className="text-muted-foreground">You need to be logged in to reply to this post.</p>
-                  <div className="flex justify-center gap-4">
-                    <Link href={`/login?redirect=/post/${resolvedParams.slug}`}>
-                      <Button>Sign In</Button>
-                    </Link>
-                    <Link href={`/register?redirect=/post/${resolvedParams.slug}`}>
-                      <Button variant="outline">Register</Button>
-                    </Link>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+          <CommentSection 
+            comments={comments} 
+            postId={post.id} 
+            slug={resolvedParams.slug} 
+            user={user} 
+          />
         </div>
       </div>
     )
