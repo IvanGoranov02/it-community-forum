@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button"
 import { createBrowserClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2, Upload, X } from "lucide-react"
+import ReactCrop, { type Crop } from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog"
 
 interface AvatarUploadProps {
   userId: string
@@ -21,7 +30,21 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
   const [isUploading, setIsUploading] = useState(false)
   const [oldAvatarPath, setOldAvatarPath] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
   const { toast } = useToast()
+  
+  // Cropping state
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0,
+  })
+  const [completedCrop, setCompletedCrop] = useState<Crop | null>(null)
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false)
+  const [imageSource, setImageSource] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
   // Extract the file path from the URL when component mounts
   useEffect(() => {
@@ -55,7 +78,7 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
   const uploadAvatar = async (file: File) => {
     if (!file) return
 
-    // Проверка на типа файл
+    // Check file type
     if (!file.type.startsWith("image/")) {
       toast({
         title: "Invalid file",
@@ -65,7 +88,7 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
       return
     }
 
-    // Проверка на размера на файла (макс. 2MB)
+    // Check file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
       toast({
         title: "File too large",
@@ -80,19 +103,19 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
     try {
       const supabase = createBrowserClient()
 
-      // Създаване на уникално име на файла
+      // Create unique filename
       const fileExt = file.name.split(".").pop()
       const fileName = `${userId}-${Date.now()}.${fileExt}`
       const filePath = `${fileName}`
 
-      // Качване на файла в Supabase Storage
+      // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage.from("avatars").upload(filePath, file)
 
       if (uploadError) {
         throw uploadError
       }
 
-      // Получаване на публичния URL
+      // Get public URL
       const { data: publicURL } = supabase.storage.from("avatars").getPublicUrl(filePath)
 
       if (publicURL) {
@@ -104,7 +127,7 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
         // Update avatar path for future reference
         setOldAvatarPath(filePath)
 
-        // Актуализиране на аватара в UI
+        // Update avatar in UI
         setAvatarUrl(publicURL.publicUrl)
         onAvatarChange(publicURL.publicUrl)
 
@@ -127,7 +150,16 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      uploadAvatar(e.target.files[0])
+      const file = e.target.files[0]
+      setSelectedFile(file)
+      
+      // Create a URL for the image
+      const reader = new FileReader()
+      reader.onload = () => {
+        setImageSource(reader.result as string)
+        setIsCropModalOpen(true)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -145,6 +177,73 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
       title: "Avatar removed",
       description: "Your avatar has been removed.",
     })
+  }
+
+  const getCroppedImg = async (
+    image: HTMLImageElement,
+    crop: Crop
+  ): Promise<File | null> => {
+    if (!crop || !image) return null
+    
+    const canvas = document.createElement('canvas')
+    const scaleX = image.naturalWidth / image.width
+    const scaleY = image.naturalHeight / image.height
+    
+    canvas.width = crop.width
+    canvas.height = crop.height
+    
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return null
+    
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      crop.width,
+      crop.height
+    )
+    
+    return new Promise((resolve) => {
+      canvas.toBlob((blob) => {
+        if (!blob || !selectedFile) {
+          resolve(null)
+          return
+        }
+        
+        const file = new File([blob], selectedFile.name, {
+          type: selectedFile.type,
+          lastModified: Date.now(),
+        })
+        resolve(file)
+      }, selectedFile?.type || 'image/jpeg')
+    })
+  }
+
+  const handleCropComplete = (crop: Crop) => {
+    setCompletedCrop(crop)
+  }
+
+  const handleSaveCrop = async () => {
+    if (!imgRef.current || !completedCrop) return
+    
+    try {
+      const croppedImage = await getCroppedImg(imgRef.current, completedCrop)
+      if (croppedImage) {
+        setIsCropModalOpen(false)
+        uploadAvatar(croppedImage)
+      }
+    } catch (error) {
+      console.error('Error cropping image:', error)
+      toast({
+        title: "Cropping error",
+        description: "There was a problem cropping your image. Please try again.",
+        variant: "destructive",
+      })
+    }
   }
 
   return (
@@ -186,11 +285,54 @@ export function AvatarUpload({ userId, initialAvatarUrl, username, onAvatarChang
           type="file"
           ref={fileInputRef}
           onChange={handleFileChange}
-          accept="image/*"
+          accept="image/jpeg,image/png,image/jpg"
           className="hidden"
           disabled={isUploading}
         />
       </div>
+
+      <Dialog open={isCropModalOpen} onOpenChange={setIsCropModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Crop Avatar</DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex items-center justify-center p-2">
+            {imageSource && (
+              <ReactCrop
+                crop={crop}
+                onChange={c => setCrop(c)}
+                onComplete={handleCropComplete}
+                aspect={1}
+                circularCrop
+              >
+                <img 
+                  ref={imgRef} 
+                  src={imageSource} 
+                  alt="Crop preview" 
+                  className="max-h-[300px] object-contain"
+                />
+              </ReactCrop>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setIsCropModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button"
+              onClick={handleSaveCrop}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

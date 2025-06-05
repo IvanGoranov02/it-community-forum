@@ -56,12 +56,12 @@ export default async function Home() {
         </Link>
         <Link href="/debug/sql-create-user">
         </Link>
-        <Link href="/simple-login">
+        {/* <Link href="/simple-login">
           <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
             <LogIn className="h-4 w-4" />
             Simple Login
           </Button>
-        </Link>
+        </Link> */}
         {user && (
           <Link href="/new-post">
             <Button className="flex items-center gap-2 bg-primary hover:bg-primary/90">
