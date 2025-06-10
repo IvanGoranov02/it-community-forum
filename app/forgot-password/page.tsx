@@ -10,12 +10,14 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const { toast } = useToast()
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,14 +25,13 @@ export default function ForgotPasswordPage() {
 
     try {
       const supabase = createBrowserClient()
-
-      // Get the site URL from environment variable or use the current origin
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${siteUrl}/reset-password`,
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: `${siteUrl}/login?magic=1`,
+        },
       })
-
       if (error) {
         toast({
           title: "Error",
@@ -40,8 +41,8 @@ export default function ForgotPasswordPage() {
       } else {
         setIsSubmitted(true)
         toast({
-          title: "Password reset email sent",
-          description: "Check your email for a password reset link.",
+          title: "Magic link sent",
+          description: "Check your email for a login link. After login, you can set a new password.",
         })
       }
     } catch (error) {
@@ -59,8 +60,8 @@ export default function ForgotPasswordPage() {
     <div className="container mx-auto px-4 py-12">
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl">Reset Password</CardTitle>
-          <CardDescription>Enter your email to receive a password reset link</CardDescription>
+          <CardTitle className="text-2xl">Forgot Password</CardTitle>
+          <CardDescription>Enter your email to receive a magic login link. After login, you can set a new password.</CardDescription>
         </CardHeader>
         {!isSubmitted ? (
           <form onSubmit={handleSubmit}>
@@ -80,7 +81,7 @@ export default function ForgotPasswordPage() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending..." : "Send Reset Link"}
+                {isLoading ? "Sending..." : "Send Magic Link"}
               </Button>
               <div className="text-center text-sm">
                 <Link href="/login" className="text-primary hover:underline">
@@ -92,9 +93,9 @@ export default function ForgotPasswordPage() {
         ) : (
           <CardContent className="space-y-4">
             <div className="bg-green-50 p-4 rounded-md text-green-800">
-              <p className="font-medium">Password reset email sent!</p>
+              <p className="font-medium">Magic link sent!</p>
               <p className="mt-2">
-                Check your email for a password reset link. If you don't see it, check your spam folder.
+                Check your email for a login link. After login, you will be redirected to set a new password.
               </p>
             </div>
             <div className="text-center mt-4">
