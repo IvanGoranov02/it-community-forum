@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
@@ -30,6 +30,8 @@ export function LoginForm({
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [magicEmail, setMagicEmail] = useState("")
+  const [magicLoading, setMagicLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -176,6 +178,44 @@ export function LoginForm({
     }
   }
 
+  // Magic Link login handler
+  const handleMagicLink = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMagicLoading(true)
+    setErrorMessage("")
+    try {
+      const supabase = createBrowserClient()
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
+      const { error } = await supabase.auth.signInWithOtp({
+        email: magicEmail,
+        options: {
+          emailRedirectTo: `${siteUrl}/login?magic=1`,
+        },
+      })
+      if (error) {
+        setErrorMessage(error.message)
+        toast({ title: "Error", description: error.message, variant: "destructive" })
+      } else {
+        toast({ title: "Check your email", description: "We've sent you a magic link to log in." })
+      }
+    } catch (error) {
+      setErrorMessage("An unexpected error occurred. Please try again.")
+      toast({ title: "Error", description: "An unexpected error occurred. Please try again.", variant: "destructive" })
+    } finally {
+      setMagicLoading(false)
+    }
+  }
+
+  // Redirect to /change-password after magic link login
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search)
+      if (params.get("magic") === "1") {
+        router.replace("/change-password")
+      }
+    }
+  }, [router])
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -237,20 +277,33 @@ export function LoginForm({
           {debugInfo && <DebugInfo title="Debug Information" data={debugInfo} />}
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
-          <Button type="submit" className="w-full">
-            Sign In
+          <Button type="submit" className="w-full" disabled={false}>
+            Login
           </Button>
-          <div className="text-center text-sm">
-            Don't have an account?{" "}
-            <Link
-              href={`/register${redirectUrl !== "/" ? `?redirect=${redirectUrl}` : ""}`}
-              className="text-primary hover:underline"
-            >
-              Register
-            </Link>
-          </div>
         </CardFooter>
       </form>
+      {/* Magic Link Login */}
+      <div className="mt-6 border-t pt-6">
+        <h3 className="text-lg font-semibold mb-2">Or login with Magic Link</h3>
+        <form onSubmit={handleMagicLink} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="magicEmail">Email</Label>
+            <Input
+              id="magicEmail"
+              name="magicEmail"
+              type="email"
+              required
+              value={magicEmail}
+              onChange={e => setMagicEmail(e.target.value)}
+              placeholder="Enter your email"
+              disabled={magicLoading}
+            />
+          </div>
+          <Button type="submit" className="w-full" disabled={magicLoading}>
+            {magicLoading ? "Sending..." : "Send Magic Link"}
+          </Button>
+        </form>
+      </div>
     </Card>
   )
 }
