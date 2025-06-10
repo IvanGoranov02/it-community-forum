@@ -41,7 +41,7 @@ export default function ForgotPasswordPage() {
       } else {
         setIsSubmitted(true)
         toast({
-          title: "Magic link sent",
+          title: "Reset link sent",
           description: "Check your email for a login link. After login, you can set a new password.",
         })
       }
@@ -81,7 +81,7 @@ export default function ForgotPasswordPage() {
             </CardContent>
             <CardFooter className="flex flex-col space-y-4">
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Sending..." : "Send Magic Link"}
+                {isLoading ? "Sending..." : "Send reset link"}
               </Button>
               <div className="text-center text-sm">
                 <Link href="/login" className="text-primary hover:underline">
@@ -93,7 +93,7 @@ export default function ForgotPasswordPage() {
         ) : (
           <CardContent className="space-y-4">
             <div className="bg-green-50 p-4 rounded-md text-green-800">
-              <p className="font-medium">Magic link sent!</p>
+              <p className="font-medium">Reset link sent!</p>
               <p className="mt-2">
                 Check your email for a login link. After login, you will be redirected to set a new password.
               </p>

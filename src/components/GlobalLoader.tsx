@@ -14,8 +14,8 @@ export function GlobalLoader() {
       const params = new URLSearchParams(hash)
       const accessToken = params.get("access_token")
       const type = params.get("type")
-      if (accessToken && type === "recovery") {
-        const url = `/reset-password?access_token=${encodeURIComponent(accessToken)}&type=${encodeURIComponent(type)}`
+      if (accessToken && (type === "recovery" || type === "magiclink")) {
+        const url = `/change-password?access_token=${encodeURIComponent(accessToken)}&type=${encodeURIComponent(type)}`
         router.replace(url)
       }
     }
