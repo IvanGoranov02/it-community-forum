@@ -206,16 +206,6 @@ export function LoginForm({
     }
   }
 
-  // Redirect to /change-password after magic link login
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search)
-      if (params.get("magic") === "1") {
-        router.replace("/change-password")
-      }
-    }
-  }, [router])
-
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -289,6 +279,7 @@ export function LoginForm({
       {/* Magic Link Login */}
       <div className="mt-6 border-t pt-6">
         <h3 className="text-lg font-semibold mb-2">Or login with Magic Link</h3>
+        <p className="text-sm text-muted-foreground mb-2">If you forgot your password, use Magic Link to log in.</p>
         <form onSubmit={handleMagicLink} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="magicEmail">Email</Label>
