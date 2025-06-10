@@ -1,10 +1,25 @@
 "use client"
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 
 export function GlobalLoader() {
   const pathname = usePathname()
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
+
+  // Handle Supabase hash fragment for password recovery globally
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hash = window.location.hash.substring(1)
+      const params = new URLSearchParams(hash)
+      const accessToken = params.get("access_token")
+      const type = params.get("type")
+      if (accessToken && type === "recovery") {
+        const url = `/reset-password?access_token=${encodeURIComponent(accessToken)}&type=${encodeURIComponent(type)}`
+        router.replace(url)
+      }
+    }
+  }, [router, pathname])
 
   useEffect(() => {
     setLoading(true)
