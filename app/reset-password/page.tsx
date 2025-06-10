@@ -22,6 +22,7 @@ export default function ResetPasswordPage() {
   const router = useRouter()
   const searchParams = useSearchParams();
   const accessToken = searchParams.get("access_token");
+  const refreshToken = searchParams.get("refresh_token");
   const type = searchParams.get("type");
 
   useEffect(() => {
@@ -59,6 +60,17 @@ export default function ResetPasswordPage() {
       }
     }
   }, [router]);
+
+  // Set Supabase session if access_token and refresh_token are present
+  useEffect(() => {
+    if (accessToken && refreshToken && type === "recovery") {
+      const supabase = createBrowserClient();
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+    }
+  }, [accessToken, refreshToken, type]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
