@@ -13,6 +13,25 @@ export function GlobalLoader() {
     return () => clearTimeout(timeout)
   }, [pathname])
 
+  // Handle Supabase hash fragment for magiclink/recovery globally
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hash = window.location.hash.substring(1)
+      const params = new URLSearchParams(hash)
+      const accessToken = params.get("access_token")
+      const refreshToken = params.get("refresh_token")
+      const type = params.get("type")
+      // Прехвърляме всички параметри от hash-а към query
+      if (accessToken && (type === "recovery" || type === "magiclink")) {
+        const query = Array.from(params.entries())
+          .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+          .join("&")
+        const url = `/change-password?${query}`
+        router.replace(url)
+      }
+    }
+  }, [router, pathname])
+
   if (!loading) return null
 
   return (
