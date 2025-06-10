@@ -1,13 +1,13 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function ChangePasswordPage() {
   const [password, setPassword] = useState("")
@@ -17,6 +17,21 @@ export default function ChangePasswordPage() {
   const [error, setError] = useState("")
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const accessToken = searchParams.get("access_token")
+  const refreshToken = searchParams.get("refresh_token")
+  const type = searchParams.get("type")
+
+  // Set Supabase session if access_token is present (for magiclink or recovery)
+  useEffect(() => {
+    if (accessToken && (type === "magiclink" || type === "recovery")) {
+      const supabase = createBrowserClient()
+      supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken || "",
+      })
+    }
+  }, [accessToken, refreshToken, type])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
