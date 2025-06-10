@@ -44,7 +44,7 @@ export async function register(formData: FormData) {
         data: {
           full_name: name,
         },
-        emailRedirectTo: `${siteUrl}/auth/callback`,
+        emailRedirectTo: `${siteUrl}/login?message=registration-success`,
       },
     })
 

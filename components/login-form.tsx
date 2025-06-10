@@ -226,7 +226,11 @@ export function LoginForm({
         <CardContent className="space-y-4">
           {message && (
             <div className="bg-green-100 border border-green-400 text-black px-4 py-3 rounded">
-              <p>{message}</p>
+              <p>
+                {message === "registration-success"
+                  ? "Registration successful! You can now log in."
+                  : message}
+              </p>
             </div>
           )}
 
