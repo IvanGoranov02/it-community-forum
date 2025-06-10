@@ -34,7 +34,7 @@ export async function register(formData: FormData) {
     }
 
     // Get the site URL from environment variable or use a fallback
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://your-actual-site-url.com"
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://it-forum.bg"
 
     // Create the user with the correct redirect URL
     const { data: authData, error: authError } = await supabase.auth.signUp({
