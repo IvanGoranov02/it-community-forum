@@ -7,20 +7,6 @@ export function GlobalLoader() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
-  // Handle Supabase hash fragment for password recovery globally
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash) {
-      const hash = window.location.hash.substring(1)
-      const params = new URLSearchParams(hash)
-      const accessToken = params.get("access_token")
-      const type = params.get("type")
-      if (accessToken && (type === "recovery" || type === "magiclink")) {
-        const url = `/change-password?access_token=${encodeURIComponent(accessToken)}&type=${encodeURIComponent(type)}`
-        router.replace(url)
-      }
-    }
-  }, [router, pathname])
-
   useEffect(() => {
     setLoading(true)
     const timeout = setTimeout(() => setLoading(false), 600)
