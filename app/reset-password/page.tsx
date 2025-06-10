@@ -40,6 +40,20 @@ export default function ResetPasswordPage() {
     checkSession()
   }, [router, toast])
 
+  // Handle Supabase hash fragment for password recovery
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.hash) {
+      const hash = window.location.hash.substring(1); // remove '#'
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get("access_token");
+      const type = params.get("type");
+      if (accessToken && type === "recovery") {
+        const url = `/reset-password?access_token=${encodeURIComponent(accessToken)}&type=${encodeURIComponent(type)}`;
+        router.replace(url);
+      }
+    }
+  }, [router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
