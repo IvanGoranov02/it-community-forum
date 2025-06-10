@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -20,8 +20,15 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("")
   const { toast } = useToast()
   const router = useRouter()
+  const searchParams = useSearchParams();
+  const accessToken = searchParams.get("access_token");
+  const type = searchParams.get("type");
 
   useEffect(() => {
+    // Ако има токен и type=recovery, не прави redirect!
+    if (accessToken && type === "recovery") {
+      return;
+    }
     // Check if we have a session from the password reset link
     const checkSession = async () => {
       const supabase = createBrowserClient()
@@ -36,9 +43,8 @@ export default function ResetPasswordPage() {
         router.push("/forgot-password")
       }
     }
-
     checkSession()
-  }, [router, toast])
+  }, [router, toast, accessToken, type])
 
   // Handle Supabase hash fragment for password recovery
   useEffect(() => {
