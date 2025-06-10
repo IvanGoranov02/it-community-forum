@@ -287,7 +287,7 @@ export function LoginForm({
         </CardFooter>
       </form>
       {/* Magic Link Login */}
-      <div className="mt-6 border-t pt-6">
+      {/* <div className="mt-6 border-t pt-6">
         <h3 className="text-lg font-semibold mb-2">Or login with Magic Link</h3>
         <form onSubmit={handleMagicLink} className="space-y-4">
           <div className="space-y-2">
@@ -307,7 +307,7 @@ export function LoginForm({
             {magicLoading ? "Sending..." : "Send Magic Link"}
           </Button>
         </form>
-      </div>
+      </div> */}
     </Card>
   )
 }
