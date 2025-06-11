@@ -2,6 +2,6 @@ export interface Tag {
   id: string;
   name: string;
   slug: string;
-  description?: string;
+  description?: string | null;
   created_at?: string;
 } 
