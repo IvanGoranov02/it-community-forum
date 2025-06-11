@@ -8,8 +8,6 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { contentType, contentId, reason, details } = body;
 
-    console.log("Report request received:", { contentType, contentId, reason, details });
-
     // Validate required fields
     if (!contentType || !contentId || !reason) {
       return NextResponse.json(
@@ -53,10 +51,8 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
-    console.log("Inserting report into database...");
     
-    // Simplify report creation - focus on just storing the report
+    // Create a new report
     const { error: reportError } = await supabase.from("content_reports").insert({
       content_type: contentType,
       content_id: contentId,
@@ -76,9 +72,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log("Report created successfully");
-    
-    // Return success immediately - we don't need to wait for email sending
+    // Return success
     return NextResponse.json({ success: true });
     
   } catch (error) {
