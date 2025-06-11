@@ -359,7 +359,6 @@ export async function updateSiteSettings(settings: Partial<AdminSettings>) {
   return { success: true }
 }
 
-// Докладване на съдържание (за потребители)
 export async function reportContent(
   contentType: "post" | "comment",
   contentId: string,
