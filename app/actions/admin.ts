@@ -462,27 +462,31 @@ export async function reportContent(
       console.warn("Missing required data for email notification");
     }
     
-    const emailResult = await sendReportNotification({
-      contentType,
-      contentId,
-      reason,
-      details,
-      reporterUsername: username || "Unknown User",
-      contentAuthor: contentAuthor || "Unknown Author",
-      contentTitle,
-      contentExcerpt: contentExcerpt || "No content available",
-    });
-    
-    if (!emailResult.success) {
-      console.warn("Email notification was not sent:", emailResult.error);
-      // We still return success as the report was created successfully
+    try {
+      const emailResult = await sendReportNotification({
+        contentType,
+        contentId,
+        reason,
+        details,
+        reporterUsername: username || "Unknown User",
+        contentAuthor: contentAuthor || "Unknown Author",
+        contentTitle,
+        contentExcerpt: contentExcerpt || "No content available",
+      });
+      
+      if (!emailResult.success) {
+        console.warn("Email notification was not sent:", emailResult.error);
+      }
+    } catch (emailSendError) {
+      console.error("Error in email sending process:", emailSendError);
+      // We continue as the report was still created
     }
   } catch (emailError) {
-    console.error("Error sending report notification email:", emailError);
-    // We don't return an error here as the report was still created successfully
+    console.error("Error in email notification flow:", emailError);
   }
 
-  return { success: true }
+  // Always return a consistent response
+  return { success: true, message: "Report submitted successfully" }
 }
 
 // Получаване на настройките на постовете

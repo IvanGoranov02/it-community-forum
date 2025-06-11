@@ -54,6 +54,14 @@ export async function sendReportNotification({
   contentExcerpt: string;
 }) {
   try {
+    // Sanitize input to prevent errors
+    const safeReporterUsername = reporterUsername || 'Unknown User';
+    const safeContentAuthor = contentAuthor || 'Unknown Author';
+    const safeContentTitle = contentTitle || '';
+    const safeContentExcerpt = contentExcerpt || 'No content available';
+    const safeReason = reason || 'Not specified';
+    const safeDetails = details || '';
+    
     // Get admin email addresses from environment variable or use default
     const adminEmails = process.env.ADMIN_EMAILS?.split(',') || ['i.goranov02@gmail.com'];
     
@@ -69,7 +77,7 @@ export async function sendReportNotification({
     const formattedContentType = contentType === 'post' ? 'Post' : 'Comment';
     
     // Format the message
-    const subject = `[IT Community Forum] New content report: ${reason}`;
+    const subject = `[IT Community Forum] New content report: ${safeReason}`;
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #2563eb;">New Content Report</h2>
@@ -79,17 +87,17 @@ export async function sendReportNotification({
           <p><strong>Report Details:</strong></p>
           <ul>
             <li><strong>Content Type:</strong> ${formattedContentType}</li>
-            <li><strong>Reason:</strong> ${reason}</li>
-            <li><strong>Reported by:</strong> ${reporterUsername}</li>
-            ${details ? `<li><strong>Additional Details:</strong> ${details}</li>` : ''}
+            <li><strong>Reason:</strong> ${safeReason}</li>
+            <li><strong>Reported by:</strong> ${safeReporterUsername}</li>
+            ${safeDetails ? `<li><strong>Additional Details:</strong> ${safeDetails}</li>` : ''}
           </ul>
         </div>
         
         <div style="background-color: #f5f5f5; padding: 15px; margin: 20px 0; border-radius: 5px;">
           <p><strong>Reported Content:</strong></p>
-          <p><strong>Author:</strong> ${contentAuthor}</p>
-          ${contentTitle ? `<p><strong>Title:</strong> ${contentTitle}</p>` : ''}
-          <p><strong>Content:</strong> ${contentExcerpt}</p>
+          <p><strong>Author:</strong> ${safeContentAuthor}</p>
+          ${safeContentTitle ? `<p><strong>Title:</strong> ${safeContentTitle}</p>` : ''}
+          <p><strong>Content:</strong> ${safeContentExcerpt}</p>
         </div>
         
         <p>Please review this report by visiting the <a href="${reportUrl}" style="color: #2563eb;">content moderation dashboard</a>.</p>
@@ -118,17 +126,25 @@ export async function sendReportNotification({
       contentId,
     }));
     
-    const transporter = getTransporter();
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log('Email sent successfully:', info.messageId);
-    
-    return { 
-      success: true, 
-      messageId: info.messageId 
-    };
+    try {
+      const transporter = getTransporter();
+      const info = await transporter.sendMail(mailOptions);
+      
+      console.log('Email sent successfully:', info.messageId);
+      
+      return { 
+        success: true, 
+        messageId: info.messageId 
+      };
+    } catch (transportError) {
+      console.error('Error in transport while sending email:', transportError);
+      return {
+        success: false,
+        error: transportError instanceof Error ? transportError.message : String(transportError)
+      };
+    }
   } catch (error) {
-    console.error('Error sending report notification email:', error);
+    console.error('Error in email preparation:', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : String(error) 
