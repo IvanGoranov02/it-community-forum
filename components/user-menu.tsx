@@ -74,6 +74,18 @@ export function UserMenu({ user }: UserMenuProps) {
     router.push(href)
   }
 
+  const handleProfileNavigate = (e: React.MouseEvent) => {
+    e.preventDefault()
+    // Check if username exists before navigating
+    if (user.username && user.username.trim() !== '') {
+      // URL encode the username to handle spaces and special characters properly
+      router.push(`/profile/${encodeURIComponent(user.username)}`)
+    } else {
+      // If username is missing, navigate to edit profile page
+      router.push('/profile/edit')
+    }
+  }
+
   const toggleTheme = () => {
     setTheme(theme === "dark" ? "light" : "dark")
   }
@@ -110,7 +122,7 @@ export function UserMenu({ user }: UserMenuProps) {
           </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <button onClick={handleNavigate(`/profile/${user.username}`)} className="cursor-pointer flex w-full items-center">
+            <button onClick={handleProfileNavigate} className="cursor-pointer flex w-full items-center">
               <UserCircle className="mr-2 h-4 w-4" />
               <span>Profile</span>
             </button>

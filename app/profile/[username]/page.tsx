@@ -16,7 +16,7 @@ type Props = {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   // Await params
   const resolvedParams = await params
-  const username = resolvedParams.username
+  const username = decodeURIComponent(resolvedParams.username)
 
   return {
     title: `${username}'s Profile | IT Community Forum`,
@@ -30,12 +30,15 @@ export default async function ProfilePage({ params }: Props) {
 
   const supabase = createServerClient()
   const currentUser = await getUser()
-  const username = resolvedParams.username
+  
+  // Decode the username from the URL to handle spaces and special characters
+  const username = decodeURIComponent(resolvedParams.username)
 
   // Get user profile
   const { data: profile, error } = await supabase.from("profiles").select("*").eq("username", username).single()
 
   if (error || !profile) {
+    console.error("Profile not found for username:", username, error)
     notFound()
   }
 

@@ -36,7 +36,7 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
         title: "Profile updated",
         description: "Your profile has been updated successfully.",
       })
-      router.push(`/profile/${state.username}`)
+      router.push(`/profile/${encodeURIComponent(state.username)}`)
     }
   }, [state.success, state.username, router])
 
@@ -86,7 +86,7 @@ export function ProfileEditForm({ user }: ProfileEditFormProps) {
           </div>
         </CardContent>
         <CardFooter className="flex justify-between">
-          <Link href={`/profile/${user.username}`}>
+          <Link href={user.username ? `/profile/${encodeURIComponent(user.username)}` : "/"}>
             <Button variant="outline">Cancel</Button>
           </Link>
           <Button type="submit" disabled={isPending}>
