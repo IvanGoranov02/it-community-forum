@@ -22,19 +22,23 @@ interface PostActionsProps {
   postSlug: string
   isAuthor: boolean
   isAdmin?: boolean
-  userEmail?: string | null
+  userEmail?: string
 }
 
-export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userEmail }: PostActionsProps) {
+export function PostActions({ postId, postSlug, isAuthor, isAdmin, userEmail }: PostActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
-  // Check if the user can delete/modify the post
-  const canModify = isAuthor || isAdmin || userEmail === "i.goranov02@gmail.com"
+  // Проверяваме дали потребителят може да редактира поста
+  const canEdit = isAuthor
 
-  if (!canModify) {
+  // Проверяваме дали потребителят може да изтрие или архивира поста
+  const canDeleteOrArchive = isAuthor || isAdmin || userEmail === "i.goranov02@gmail.com"
+
+  // Ако потребителят няма права за никакви действия, не показваме компонента
+  if (!canEdit && !canDeleteOrArchive) {
     return null
   }
 
@@ -43,23 +47,19 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userE
     try {
       const response = await fetch(`/api/posts/${postId}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to delete post")
+        throw new Error("Failed to delete post")
       }
 
       toast({
         title: "Post deleted",
-        description: "Your post has been deleted successfully.",
+        description: "Your post has been deleted.",
       })
 
       router.push("/")
+      router.refresh()
     } catch (error) {
       console.error("Error deleting post:", error)
       toast({
@@ -67,6 +67,7 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userE
         description: error instanceof Error ? error.message : "Failed to delete post",
         variant: "destructive",
       })
+    } finally {
       setIsLoading(false)
       setIsDeleteDialogOpen(false)
     }
@@ -75,17 +76,16 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userE
   const handleArchive = async () => {
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/posts/${postId}/archive`, {
-        method: "POST",
+      const response = await fetch(`/api/posts/${postId}`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
+        body: JSON.stringify({ is_archived: true }),
       })
 
-      const data = await response.json()
-
       if (!response.ok) {
-        throw new Error(data.error || "Failed to archive post")
+        throw new Error("Failed to archive post")
       }
 
       toast({
@@ -110,25 +110,32 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userE
   return (
     <>
       <div className="flex space-x-2">
-        <Link href={`/post/edit/${postId}`}>
-          <Button variant="outline" size="sm">
-            <Edit className="h-4 w-4 mr-1" />
-            Edit
-          </Button>
-        </Link>
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-red-500 hover:text-red-700"
-          onClick={() => setIsDeleteDialogOpen(true)}
-        >
-          <Trash2 className="h-4 w-4 mr-1" />
-          Delete
-        </Button>
-        <Button variant="outline" size="sm" onClick={() => setIsArchiveDialogOpen(true)}>
-          <Archive className="h-4 w-4 mr-1" />
-          Archive
-        </Button>
+        {canEdit && (
+          <Link href={`/post/edit/${postId}`}>
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4 mr-1" />
+              Edit
+            </Button>
+          </Link>
+        )}
+        
+        {canDeleteOrArchive && (
+          <>
+            <Button
+              variant="outline"
+              size="sm"
+              className="text-red-500 hover:text-red-700"
+              onClick={() => setIsDeleteDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => setIsArchiveDialogOpen(true)}>
+              <Archive className="h-4 w-4 mr-1" />
+              Archive
+            </Button>
+          </>
+        )}
       </div>
 
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
@@ -136,12 +143,12 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userE
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure you want to delete this post?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete your post and remove it from our servers.
+              This action cannot be undone. This will permanently delete your post and remove the data from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} disabled={isLoading} className="bg-red-500 hover:bg-red-600">
+            <AlertDialogAction onClick={handleDelete} disabled={isLoading}>
               {isLoading ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -151,10 +158,9 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userE
       <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Archive this post?</AlertDialogTitle>
+            <AlertDialogTitle>Are you sure you want to archive this post?</AlertDialogTitle>
             <AlertDialogDescription>
-              Archiving will hide this post from the main feed, but it will still be accessible via direct link. You can
-              unarchive it later.
+              Archiving will hide this post from the main forum. You can unarchive it later from your profile.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase";
 import { getUser } from "@/app/actions/auth";
-import { sendReportNotification } from "@/lib/email";
 
 export async function POST(request: NextRequest) {
   try {
     // Get request data
     const body = await request.json();
     const { contentType, contentId, reason, details } = body;
+
+    console.log("Report request received:", { contentType, contentId, reason, details });
 
     // Validate required fields
     if (!contentType || !contentId || !reason) {
@@ -30,13 +31,21 @@ export async function POST(request: NextRequest) {
     const supabase = createServerClient();
 
     // Check if the user has already reported this content
-    const { data: existingReport } = await supabase
+    const { data: existingReport, error: existingReportError } = await supabase
       .from("content_reports")
       .select("id")
       .eq("content_type", contentType)
       .eq("content_id", contentId)
       .eq("reporter_id", user.id)
       .maybeSingle();
+
+    if (existingReportError) {
+      console.error("Error checking existing report:", existingReportError);
+      return NextResponse.json(
+        { error: "Error checking existing report" },
+        { status: 500 }
+      );
+    }
 
     if (existingReport) {
       return NextResponse.json(
@@ -45,7 +54,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a new report first (do this before email to ensure the report is saved)
+    console.log("Inserting report into database...");
+    
+    // Simplify report creation - focus on just storing the report
     const { error: reportError } = await supabase.from("content_reports").insert({
       content_type: contentType,
       content_id: contentId,
@@ -58,96 +69,22 @@ export async function POST(request: NextRequest) {
     });
 
     if (reportError) {
-      console.error("Error reporting content:", reportError);
+      console.error("Error creating report:", reportError);
       return NextResponse.json(
-        { error: reportError.message },
+        { error: "Failed to create report", details: reportError.message },
         { status: 500 }
       );
     }
 
-    // Return success response immediately
-    // We'll handle the email notification in the background
-    setTimeout(async () => {
-      try {
-        // Get content details for the email notification
-        let contentAuthor = "Unknown";
-        let contentTitle = "";
-        let contentExcerpt = "";
-
-        try {
-          if (contentType === "post") {
-            const { data: post } = await supabase
-              .from("posts")
-              .select(`
-                title,
-                content,
-                author:profiles!author_id(username)
-              `)
-              .eq("id", contentId)
-              .single();
-            
-            if (post) {
-              const author = post.author as any;
-              contentAuthor = author?.username || "Unknown";
-              contentTitle = post.title || "";
-              contentExcerpt = post.content 
-                ? post.content.substring(0, 200) + (post.content.length > 200 ? "..." : "") 
-                : "";
-            }
-          } else if (contentType === "comment") {
-            const { data: comment } = await supabase
-              .from("comments")
-              .select(`
-                content,
-                author:profiles!author_id(username)
-              `)
-              .eq("id", contentId)
-              .single();
-            
-            if (comment) {
-              const author = comment.author as any;
-              contentAuthor = author?.username || "Unknown";
-              contentExcerpt = comment.content 
-                ? comment.content.substring(0, 200) + (comment.content.length > 200 ? "..." : "") 
-                : "";
-            }
-          }
-        } catch (fetchError) {
-          console.error("Error fetching content details for report:", fetchError);
-          // Continue with basic information even if we can't get content details
-        }
-
-        // Get the username from the database
-        const { data: userProfile } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("id", user.id)
-          .single();
-          
-        const username = userProfile?.username || "Unknown User";
-
-        // Send the email notification
-        await sendReportNotification({
-          contentType,
-          contentId,
-          reason,
-          details,
-          reporterUsername: username,
-          contentAuthor,
-          contentTitle,
-          contentExcerpt: contentExcerpt || "No content available",
-        });
-      } catch (emailError) {
-        // Just log the error, we've already returned success to the client
-        console.error("Background email notification failed:", emailError);
-      }
-    }, 0);
-
+    console.log("Report created successfully");
+    
+    // Return success immediately - we don't need to wait for email sending
     return NextResponse.json({ success: true });
+    
   } catch (error) {
     console.error("Error in /api/report route:", error);
     return NextResponse.json(
-      { error: "An unexpected error occurred" },
+      { error: "An unexpected error occurred", details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

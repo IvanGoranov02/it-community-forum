@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, Users, Shield, Tag, FolderTree, Settings, Home } from "lucide-react"
+import { LayoutDashboard, Users, Shield, Tag, FolderTree, Settings, Home, Database } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "Административен панел | IT Community Forum",
@@ -89,6 +89,14 @@ export default async function AdminLayout({
                 <Link href="/admin/tags">
                   <Tag className="h-4 w-4" />
                   <span>Тагове</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild>
+                <Link href="/admin/database">
+                  <Database className="h-4 w-4" />
+                  <span>База данни</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
