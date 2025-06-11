@@ -51,7 +51,10 @@ export const metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  metadataBase: new URL((() => {
+    const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+    return url.startsWith('http') ? url : `https://${url}`;
+  })()),
   alternates: {
     canonical: '/',
   },
@@ -123,12 +126,18 @@ export default async function RootLayout({
               "@type": "WebSite",
               "name": "IT-Community",
               "description": "The Forum for IT Professionals & Tech Enthusiasts",
-              "url": process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+              "url": (() => {
+                const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+                return url.startsWith('http') ? url : `https://${url}`;
+              })(),
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": {
                   "@type": "EntryPoint",
-                  "urlTemplate": `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/search?q={search_term_string}`
+                  "urlTemplate": `${(() => {
+                    const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+                    return url.startsWith('http') ? url : `https://${url}`;
+                  })()}/search?q={search_term_string}`
                 },
                 "query-input": "required name=search_term_string"
               },
@@ -137,7 +146,10 @@ export default async function RootLayout({
                 "name": "IT-Community",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/logo.svg`
+                  "url": `${(() => {
+                    const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+                    return url.startsWith('http') ? url : `https://${url}`;
+                  })()}/logo.svg`
                 }
               }
             })

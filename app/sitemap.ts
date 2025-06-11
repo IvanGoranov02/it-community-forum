@@ -2,7 +2,10 @@ import { MetadataRoute } from 'next'
 import { getCategories, getRecentPosts } from '@/lib/api'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const baseUrl = (() => {
+  const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  return url.startsWith('http') ? url : `https://${url}`;
+})()
   
   // Static pages
   const staticPages = [

@@ -101,6 +101,12 @@ export default async function PostPage({ params }: PostPageProps) {
       slug: decodeURIComponent(params.slug) 
     };
 
+    // Helper function to ensure URL has protocol
+    const getSiteUrl = () => {
+      const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+      return url.startsWith('http') ? url : `https://${url}`;
+    };
+
     // Get post data
     const post = await getPostBySlug(resolvedParams.slug)
 
@@ -140,21 +146,21 @@ export default async function PostPage({ params }: PostPageProps) {
               "author": {
                 "@type": "Person",
                 "name": post.author?.username || "IT-Community User",
-                "url": `${process.env.NEXT_PUBLIC_SITE_URL}/profile/${post.author?.username}`
+                "url": `${getSiteUrl()}/profile/${post.author?.username}`
               },
               "publisher": {
                 "@type": "Organization",
                 "name": "IT-Community",
                 "logo": {
                   "@type": "ImageObject",
-                  "url": `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`
+                  "url": `${getSiteUrl()}/logo.png`
                 }
               },
               "mainEntityOfPage": {
                 "@type": "WebPage",
-                "@id": `${process.env.NEXT_PUBLIC_SITE_URL}/post/${resolvedParams.slug}`
+                "@id": `${getSiteUrl()}/post/${resolvedParams.slug}`
               },
-              "discussionUrl": `${process.env.NEXT_PUBLIC_SITE_URL}/post/${resolvedParams.slug}`,
+              "discussionUrl": `${getSiteUrl()}/post/${resolvedParams.slug}`,
               "commentCount": comments.length,
               "interactionStatistic": [
                 {

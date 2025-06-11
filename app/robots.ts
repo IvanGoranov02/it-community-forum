@@ -1,7 +1,10 @@
 import { MetadataRoute } from 'next'
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
+  const baseUrl = (() => {
+  const url = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+  return url.startsWith('http') ? url : `https://${url}`;
+})()
   
   return {
     rules: [
