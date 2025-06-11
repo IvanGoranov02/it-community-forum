@@ -17,7 +17,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Flag } from "lucide-react"
-import { reportContent } from "@/app/actions/admin"
 import { useToast } from "@/hooks/use-toast"
 
 interface ReportDialogProps {
@@ -45,59 +44,30 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
 
     setIsSubmitting(true)
     try {
-      // Wrap the call in a try-catch to handle any errors in serialization
-      let result;
-      try {
-        result = await reportContent(contentType, contentId, reason, details);
-      } catch (callError) {
-        console.error("Error calling reportContent:", callError);
-        
-        // Handle the specific error case we're seeing
-        if (callError instanceof Error && callError.message.includes("$undefined")) {
-          // If we get this specific error, assume the report was successful
-          // The backend is likely returning a response that can't be serialized
-          toast({
-            title: "Success",
-            description: "Report submitted successfully",
-          });
-          setIsOpen(false);
-          setReason("");
-          setDetails("");
-          return;
-        }
-        
-        throw callError;
+      const response = await fetch('/api/report', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contentType,
+          contentId,
+          reason,
+          details
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to submit report');
       }
       
-      // Check if the result is valid
-      if (!result) {
-        console.warn("Empty result from reportContent");
-        toast({
-          title: "Warning",
-          description: "Report submitted but we couldn't verify the result",
-        });
-        setIsOpen(false);
-        setReason("");
-        setDetails("");
-        return;
-      }
-      
-      // Check for error in the result
-      if (result.error) {
-        console.error("Error in result:", result.error);
-        toast({
-          title: "Error",
-          description: typeof result.error === 'string' ? result.error : "Failed to submit report",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // If we got here, it's a success
       toast({
         title: "Success",
         description: "Report submitted successfully",
       });
+      
       setIsOpen(false);
       setReason("");
       setDetails("");
@@ -105,7 +75,7 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
       console.error("Error submitting report:", error);
       toast({
         title: "Error",
-        description: "An unexpected error occurred",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
         variant: "destructive",
       });
     } finally {
@@ -124,8 +94,10 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Report Content</DialogTitle>
-          <DialogDescription>Report this content if it violates forum rules</DialogDescription>
+          <DialogTitle>Report {contentType}</DialogTitle>
+          <DialogDescription>
+            Please let us know why you're reporting this {contentType}. We'll review it and take appropriate action.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
@@ -136,9 +108,9 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
                 <SelectValue placeholder="Select a reason" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="spam">Spam</SelectItem>
-                <SelectItem value="harassment">Harassment or offensive content</SelectItem>
+                <SelectItem value="spam">Spam or misleading</SelectItem>
                 <SelectItem value="inappropriate">Inappropriate content</SelectItem>
+                <SelectItem value="harassment">Harassment or bullying</SelectItem>
                 <SelectItem value="misinformation">Misinformation</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
               </SelectContent>
@@ -149,10 +121,9 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
             <Label htmlFor="details">Additional details (optional)</Label>
             <Textarea
               id="details"
+              placeholder="Please provide any additional information that might help our team."
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Describe the issue in more detail..."
-              rows={4}
             />
           </div>
         </div>
