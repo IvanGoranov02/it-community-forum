@@ -15,6 +15,21 @@ import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
 
+export const metadata = {
+  title: "IT-Community - The Forum for IT Professionals | Programming & Tech Discussions",
+  description: "Join IT-Community, the premier forum for IT professionals, developers, and tech enthusiasts. Discuss programming languages, share knowledge, get career advice, and connect with fellow IT professionals worldwide.",
+  openGraph: {
+    title: "IT-Community - The Forum for IT Professionals",
+    description: "Join thousands of IT professionals in our vibrant community. Share knowledge, get help with technical problems, discuss latest tech trends, and advance your IT career.",
+    images: ['/og-image.png'],
+  },
+  twitter: {
+    title: "IT-Community - The Forum for IT Professionals",
+    description: "Join thousands of IT professionals in our vibrant community. Share knowledge, get technical help, and advance your career.",
+    images: ['/og-image.png'],
+  },
+}
+
 export default async function Home() {
   const user: any = await getUser()
   const categories: any = await getCategories()
@@ -25,14 +40,17 @@ export default async function Home() {
   const notifications: any = user ? await getUserNotifications(10) : []
   const unreadCount: any = user ? await getUnreadNotificationsCount() : 0
 
+  console.log("Loaded notifications:", notifications.length, "Unread count:", unreadCount)
+  console.log("User ID:", user?.id)
+
   console.log("Categories with counts:", categories)
 
   return (
     <div className="container mx-auto px-4 py-6">
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 bg-muted/30 p-6 rounded-lg">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-primary">TechTalk Forum</h1>
-          <p className="text-muted-foreground mt-1">A community for IT professionals and enthusiasts</p>
+          <h1 className="text-3xl font-bold tracking-tight text-primary">IT-Community</h1>
+          <p className="text-muted-foreground mt-1">The Forum for IT Professionals & Tech Enthusiasts</p>
         </div>
         <div className="flex items-center gap-4 w-full md:w-auto">
           <SearchBar className="w-full md:w-[300px]" />

@@ -15,6 +15,37 @@ import { notFound } from "next/navigation"
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
 
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  const resolvedParams = await params
+  const category = await getCategoryBySlug(resolvedParams.slug)
+  
+  if (!category) {
+    return {
+      title: 'Category Not Found | IT-Community',
+      description: 'The requested category could not be found.',
+    }
+  }
+
+  return {
+    title: `${category.name} - IT-Community Forum`,
+    description: `Explore ${category.name} discussions in IT-Community. ${category.description || `Join the conversation about ${category.name.toLowerCase()} with fellow IT professionals and tech enthusiasts.`}`,
+    openGraph: {
+      title: `${category.name} - IT-Community Forum`,
+      description: `Explore ${category.name} discussions in IT-Community. ${category.description || `Join the conversation about ${category.name.toLowerCase()} with fellow IT professionals and tech enthusiasts.`}`,
+      url: `/category/${resolvedParams.slug}`,
+      images: ['/og-image.png'],
+    },
+    twitter: {
+      title: `${category.name} - IT-Community Forum`,
+      description: `Explore ${category.name} discussions in IT-Community. ${category.description || `Join the conversation about ${category.name.toLowerCase()} with fellow IT professionals and tech enthusiasts.`}`,
+      images: ['/og-image.png'],
+    },
+    alternates: {
+      canonical: `/category/${resolvedParams.slug}`,
+    },
+  }
+}
+
 interface CategoryPageProps {
   params: {
     slug: string

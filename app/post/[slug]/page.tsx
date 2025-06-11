@@ -27,6 +27,67 @@ import { PostPageClient } from "@/components/post-page-client"
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
 
+export async function generateMetadata({ params }: { params: { slug: string } }) {
+  try {
+    const resolvedParams = { 
+      slug: decodeURIComponent(params.slug) 
+    };
+    
+    const post = await getPostBySlug(resolvedParams.slug)
+    
+    if (!post) {
+      return {
+        title: 'Post Not Found | IT-Community',
+        description: 'The requested post could not be found.',
+      }
+    }
+
+    // Create a clean excerpt from post content
+    const excerpt = post.content 
+      ? post.content.replace(/[#*`]/g, '').substring(0, 160) + '...'
+      : `Discussion about ${post.title} in IT-Community Forum.`
+
+    return {
+      title: `${post.title} | IT-Community Forum`,
+      description: excerpt,
+      keywords: [
+        post.title.split(' '),
+        post.category?.name,
+        'programming',
+        'development',
+        'IT community',
+        'tech discussion'
+      ].flat().filter(Boolean),
+      openGraph: {
+        title: post.title,
+        description: excerpt,
+        url: `/post/${resolvedParams.slug}`,
+        images: ['/og-image.png'],
+        type: 'article',
+        publishedTime: post.created_at,
+        modifiedTime: post.updated_at,
+        authors: [post.author?.username || 'IT-Community User'],
+        section: post.category?.name || 'General',
+      },
+      twitter: {
+        title: post.title,
+        description: excerpt,
+        images: ['/og-image.png'],
+        card: 'summary_large_image',
+      },
+      alternates: {
+        canonical: `/post/${resolvedParams.slug}`,
+      },
+    }
+  } catch (error) {
+    console.error('Error generating post metadata:', error)
+    return {
+      title: 'IT-Community Forum',
+      description: 'The Forum for IT Professionals & Tech Enthusiasts',
+    }
+  }
+}
+
 interface PostPageProps {
   params: {
     slug: string
@@ -64,8 +125,59 @@ export default async function PostPage({ params }: PostPageProps) {
     const isAdmin = user ? user.role === "admin" : false
 
     return (
-      <div className="container mx-auto py-6 px-4">
-        <div className="max-w-4xl mx-auto">
+      <>
+        {/* Structured Data for SEO */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "DiscussionForumPosting",
+              "headline": post.title,
+              "text": post.content,
+              "datePublished": post.created_at,
+              "dateModified": post.updated_at,
+              "author": {
+                "@type": "Person",
+                "name": post.author?.username || "IT-Community User",
+                "url": `${process.env.NEXT_PUBLIC_SITE_URL}/profile/${post.author?.username}`
+              },
+              "publisher": {
+                "@type": "Organization",
+                "name": "IT-Community",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": `${process.env.NEXT_PUBLIC_SITE_URL}/logo.png`
+                }
+              },
+              "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": `${process.env.NEXT_PUBLIC_SITE_URL}/post/${resolvedParams.slug}`
+              },
+              "discussionUrl": `${process.env.NEXT_PUBLIC_SITE_URL}/post/${resolvedParams.slug}`,
+              "commentCount": comments.length,
+              "interactionStatistic": [
+                {
+                  "@type": "InteractionCounter",
+                  "interactionType": "https://schema.org/CommentAction",
+                  "userInteractionCount": comments.length
+                },
+                {
+                  "@type": "InteractionCounter", 
+                  "interactionType": "https://schema.org/ViewAction",
+                  "userInteractionCount": post.views || 0
+                }
+              ],
+              "about": {
+                "@type": "Thing",
+                "name": post.category?.name || "General Discussion"
+              }
+            })
+          }}
+        />
+        
+        <div className="container mx-auto py-6 px-4">
+          <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-6">
             <Link href="/" className="flex items-center text-sm text-muted-foreground hover:text-primary">
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -100,6 +212,7 @@ export default async function PostPage({ params }: PostPageProps) {
           />
         </div>
       </div>
+      </>
     )
   } catch (error) {
     console.error("Error in PostPage:", error)
