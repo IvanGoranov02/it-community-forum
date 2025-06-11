@@ -382,7 +382,6 @@ export async function reportContent(
     .single();
     
   const username = userProfile?.username || "Unknown User";
-
   // Check if the user has already reported this content
   const { data: existingReport } = await supabase
     .from("content_reports")
