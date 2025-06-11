@@ -22,39 +22,51 @@ interface PostActionsProps {
   postSlug: string
   isAuthor: boolean
   isAdmin?: boolean
+  userEmail?: string | null
 }
 
-export function PostActions({ postId, postSlug, isAuthor, isAdmin = false }: PostActionsProps) {
-  const router = useRouter()
+export function PostActions({ postId, postSlug, isAuthor, isAdmin = false, userEmail }: PostActionsProps) {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [isArchiveDialogOpen, setIsArchiveDialogOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
+
+  // Check if the user can delete/modify the post
+  const canModify = isAuthor || isAdmin || userEmail === "i.goranov02@gmail.com"
+
+  if (!canModify) {
+    return null
+  }
 
   const handleDelete = async () => {
     setIsLoading(true)
     try {
       const response = await fetch(`/api/posts/${postId}`, {
         method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to delete post")
+        throw new Error(data.error || "Failed to delete post")
       }
 
       toast({
         title: "Post deleted",
         description: "Your post has been deleted successfully.",
       })
-      router.push("/my-posts")
-      router.refresh()
+
+      router.push("/")
     } catch (error) {
       console.error("Error deleting post:", error)
       toast({
         title: "Error",
-        description: "Failed to delete post. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to delete post",
         variant: "destructive",
       })
-    } finally {
       setIsLoading(false)
       setIsDeleteDialogOpen(false)
     }
@@ -64,24 +76,29 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false }: Pos
     setIsLoading(true)
     try {
       const response = await fetch(`/api/posts/${postId}/archive`, {
-        method: "PATCH",
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error("Failed to archive post")
+        throw new Error(data.error || "Failed to archive post")
       }
 
       toast({
         title: "Post archived",
-        description: "Your post has been archived successfully.",
+        description: "Your post has been archived.",
       })
-      router.push("/my-posts")
+
       router.refresh()
     } catch (error) {
       console.error("Error archiving post:", error)
       toast({
         title: "Error",
-        description: "Failed to archive post. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to archive post",
         variant: "destructive",
       })
     } finally {
@@ -89,8 +106,6 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false }: Pos
       setIsArchiveDialogOpen(false)
     }
   }
-
-  if (!isAuthor && !isAdmin) return null
 
   return (
     <>
@@ -136,9 +151,10 @@ export function PostActions({ postId, postSlug, isAuthor, isAdmin = false }: Pos
       <AlertDialog open={isArchiveDialogOpen} onOpenChange={setIsArchiveDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure you want to archive this post?</AlertDialogTitle>
+            <AlertDialogTitle>Archive this post?</AlertDialogTitle>
             <AlertDialogDescription>
-              Archiving will hide this post from public view, but you can restore it later.
+              Archiving will hide this post from the main feed, but it will still be accessible via direct link. You can
+              unarchive it later.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

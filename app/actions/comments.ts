@@ -86,3 +86,63 @@ export async function createNewComment(formData: FormData) {
     return { error: error.message || "Failed to create comment" }
   }
 }
+
+export async function deleteComment(commentId: string) {
+  const user = await getUser();
+
+  if (!user) {
+    return { error: "You must be logged in to delete a comment" };
+  }
+
+  try {
+    const supabase = createServerClient();
+
+    // Check if the comment exists and get its author
+    const { data: comment, error: commentError } = await supabase
+      .from("comments")
+      .select("author_id, post_id")
+      .eq("id", commentId)
+      .single();
+
+    if (commentError) {
+      console.error("Error fetching comment:", commentError);
+      return { error: "Comment not found" };
+    }
+
+    // Check if user is authorized to delete (author, admin, or specific email)
+    const isAuthor = comment.author_id === user.id;
+    const isAdmin = user.role === "admin";
+    const isSpecialUser = user.email === "i.goranov02@gmail.com";
+
+    if (!isAuthor && !isAdmin && !isSpecialUser) {
+      return { error: "You don't have permission to delete this comment" };
+    }
+
+    // Delete the comment
+    const { error: deleteError } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", commentId);
+
+    if (deleteError) {
+      console.error("Error deleting comment:", deleteError);
+      return { error: "Failed to delete comment" };
+    }
+
+    // Get the post slug for revalidation
+    const { data: post, error: postError } = await supabase
+      .from("posts")
+      .select("slug")
+      .eq("id", comment.post_id)
+      .single();
+
+    if (!postError && post) {
+      revalidatePath(`/post/${post.slug}`);
+    }
+
+    return { success: true };
+  } catch (error) {
+    console.error("Error in deleteComment:", error);
+    return { error: "An unexpected error occurred" };
+  }
+}

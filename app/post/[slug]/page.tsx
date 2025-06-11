@@ -22,7 +22,6 @@ import { PostActions } from "@/components/post-actions"
 import { ProfilePopup } from "@/components/ProfilePopup"
 import { CommentSection } from "../../../src/components/comment-section"
 import { ShareDialog } from "@/components/share-dialog"
-import type { Tag } from "@/types/tags"
 
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
@@ -57,7 +56,7 @@ export default async function PostPage({ params }: PostPageProps) {
     const isBookmarked = user ? await isPostBookmarked(post.id) : false
 
     // Get post tags
-    const tags = (await getPostTags(post.id)) as Tag[]
+    const tagsData = await getPostTags(post.id);
 
     // Check if current user is post author or admin
     const isAuthor = user ? user.id === post.author_id : false
@@ -73,9 +72,15 @@ export default async function PostPage({ params }: PostPageProps) {
             </Link>
           </div>
 
-          {(isAuthor || isAdmin) && (
+          {(isAuthor || isAdmin || user?.email === "i.goranov02@gmail.com") && (
             <div className="mb-6">
-              <PostActions postId={post.id} postSlug={resolvedParams.slug} isAuthor={isAuthor} isAdmin={isAdmin} />
+              <PostActions 
+                postId={post.id} 
+                postSlug={resolvedParams.slug} 
+                isAuthor={isAuthor} 
+                isAdmin={isAdmin} 
+                userEmail={user?.email}
+              />
             </div>
           )}
 
@@ -127,9 +132,9 @@ export default async function PostPage({ params }: PostPageProps) {
                 </div>
               </div>
 
-              {tags.length > 0 && (
+              {tagsData.length > 0 && (
                 <div>
-                  <PostTags tags={tags} />
+                  <PostTags tags={tagsData} />
                 </div>
               )}
             </CardHeader>

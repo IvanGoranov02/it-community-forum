@@ -25,7 +25,12 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       return NextResponse.json({ error: postCheckError.message }, { status: 500 })
     }
 
-    if (post.author_id !== user.id) {
+    // Check if user is authorized to delete this post
+    const isAuthor = post.author_id === user.id;
+    const isAdmin = user.role === "admin";
+    const isSpecialUser = user.email === "i.goranov02@gmail.com";
+
+    if (!isAuthor && !isAdmin && !isSpecialUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 403 })
     }
 

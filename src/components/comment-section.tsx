@@ -15,6 +15,7 @@ import { ReportDialog } from "@/components/report-dialog"
 import { ProfilePopup } from "@/components/ProfilePopup"
 import Link from "next/link"
 import { ShareDialog } from "@/components/share-dialog"
+import { CommentDeleteButton } from "@/components/comment-delete-button"
 
 // Компонент за форма за коментар с loading state
 function CommentForm({ postId, slug, replyToUsername = null, onCommentSubmitted }: { postId: string; slug: string; replyToUsername?: string | null; onCommentSubmitted?: () => void }) {
@@ -152,6 +153,15 @@ export function CommentSection({ comments, postId, slug, user }: any) {
                   <MessageSquare className="h-4 w-4" />
                   <span>Reply</span>
                 </Button>
+                
+                {user && (
+                  <CommentDeleteButton 
+                    commentId={comment.id}
+                    isAuthor={user.id === comment.author_id}
+                    isAdmin={user.role === "admin"}
+                    userEmail={user.email}
+                  />
+                )}
               </div>
               <div className="flex items-center space-x-2">
                 <ShareDialog url={`/post/${slug}#comment-${comment.id}`} title="Share this comment">

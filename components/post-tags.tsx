@@ -9,7 +9,7 @@ interface Tag {
 }
 
 interface PostTagsProps {
-  tags: Tag[]
+  tags: any[]
 }
 
 export function PostTags({ tags }: PostTagsProps) {
