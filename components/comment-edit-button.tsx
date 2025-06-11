@@ -30,7 +30,6 @@ export function CommentEditButton({ commentId, postSlug, isAuthor, userEmail, in
   const [isSubmitting, setIsSubmitting] = useState(false)
   const { toast } = useToast()
 
-  // Проверяваме дали потребителят има право да редактира коментара
   const canEdit = isAuthor || userEmail === "i.goranov02@gmail.com"
 
   if (!canEdit) {
