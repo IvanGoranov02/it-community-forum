@@ -87,12 +87,18 @@ function CommentForm({ postId, slug, replyToUsername = null, onCommentSubmitted 
 }
 
 // Основен компонент за секцията с коментари
-export function CommentSection({ comments, postId, slug, user }: any) {
+export function CommentSection({ comments, postId, slug, user, replyingTo: externalReplyingTo, onClearReply }: any) {
   const [replyingTo, setReplyingTo] = useState<string | null>(null)
+
+  // Use external replyingTo if provided, otherwise use internal state
+  const currentReplyingTo = externalReplyingTo || replyingTo
 
   // Функция за изчистване на reply състоянието
   const clearReplyState = () => {
     setReplyingTo(null)
+    if (onClearReply) {
+      onClearReply()
+    }
   }
 
   return (
@@ -212,7 +218,7 @@ export function CommentSection({ comments, postId, slug, user }: any) {
           <CommentForm 
             postId={postId} 
             slug={slug} 
-            replyToUsername={replyingTo} 
+            replyToUsername={currentReplyingTo} 
             onCommentSubmitted={clearReplyState} 
           />
         ) : (

@@ -10,7 +10,7 @@ export function initializeEmailTransporter() {
   const host = process.env.SMTP_HOST || 'smtp.gmail.com';
   const port = parseInt(process.env.SMTP_PORT || '465');
   const user = process.env.SMTP_USER || 'i.goranov02@gmail.com';
-  const pass = process.env.SMTP_PASS || 'scmvaqkqjkrqasbu'; // App password from Gmail
+  const pass = process.env.SMTP_PASS || 'qdvrveilmjytsjih'; // App password from Gmail
   
   transporter = nodemailer.createTransport({
     host,

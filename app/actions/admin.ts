@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import type { UserRole, AdminStats, UserManagementFilters, AdminSettings, PostSettings } from "@/types/admin"
 import { sendReportNotification } from "@/lib/email"
+import { createNotification } from "@/app/actions/notifications"
 
 // Помощна функция за проверка на администраторски права
 async function checkAdminAccess() {
@@ -411,8 +412,8 @@ export async function reportContent(
         .eq("id", contentId)
         .single();
       
-      if (post) {
-        contentAuthor = post.author?.username || "Unknown";
+      if (post && post.author) {
+        contentAuthor = (post.author as any)?.username || "Unknown";
         contentTitle = post.title || "";
         contentExcerpt = post.content ? post.content.substring(0, 200) + (post.content.length > 200 ? "..." : "") : "";
       }
@@ -426,8 +427,8 @@ export async function reportContent(
         .eq("id", contentId)
         .single();
       
-      if (comment) {
-        contentAuthor = comment.author?.username || "Unknown";
+      if (comment && comment.author) {
+        contentAuthor = (comment.author as any)?.username || "Unknown";
         contentExcerpt = comment.content ? comment.content.substring(0, 200) + (comment.content.length > 200 ? "..." : "") : "";
       }
     }
@@ -455,32 +456,54 @@ export async function reportContent(
 
   // Send email notification to admins
   try {
-    // Make sure we have the required data for the email
-    if (!username || !contentAuthor || !contentExcerpt) {
-      console.warn("Missing required data for email notification");
-    }
+    const emailResult = await sendReportNotification({
+      contentType,
+      contentId,
+      reason,
+      details,
+      reporterUsername: username,
+      contentAuthor: contentAuthor || "Unknown Author",
+      contentTitle: contentTitle || "",
+      contentExcerpt: contentExcerpt || "No content available",
+    });
     
-    try {
-      const emailResult = await sendReportNotification({
-        contentType,
-        contentId,
-        reason,
-        details,
-        reporterUsername: username || "Unknown User",
-        contentAuthor: contentAuthor || "Unknown Author",
-        contentTitle,
-        contentExcerpt: contentExcerpt || "No content available",
-      });
-      
-      if (!emailResult.success) {
-        console.warn("Email notification was not sent:", emailResult.error);
-      }
-    } catch (emailSendError) {
-      console.error("Error in email sending process:", emailSendError);
-      // We continue as the report was still created
+    if (emailResult.success) {
+      console.log("Email notification sent successfully:", emailResult.messageId);
+    } else {
+      console.warn("Email notification failed:", emailResult.error);
     }
   } catch (emailError) {
-    console.error("Error in email notification flow:", emailError);
+    console.error("Error sending email notification:", emailError);
+    // Continue - report was still created successfully
+  }
+
+  // Create in-app notifications for admins
+  try {
+    // Get admin users to send notifications to
+    const { data: adminUsers } = await supabase
+      .from("profiles")
+      .select("id")
+      .in("role", ["admin", "moderator"]);
+
+    if (adminUsers && adminUsers.length > 0) {
+      // Create notification for each admin
+      for (const admin of adminUsers) {
+        const reportTypeText = contentType === "post" ? "post" : "comment";
+        const titleText = contentTitle ? ` "${contentTitle}"` : "";
+        
+        const notificationContent = `New ${reportTypeText} report: ${username} reported ${contentAuthor}'s ${reportTypeText}${titleText} for ${reason}`;
+        
+        await createNotification(
+          admin.id,
+          notificationContent,
+          "/admin/moderation",
+          "report"
+        );
+      }
+    }
+  } catch (notificationError) {
+    console.error("Error creating notifications:", notificationError);
+    // Continue - report was still created successfully
   }
 
   // Always return a consistent response

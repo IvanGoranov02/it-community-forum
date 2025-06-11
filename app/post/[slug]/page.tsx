@@ -22,6 +22,7 @@ import { PostActions } from "@/components/post-actions"
 import { ProfilePopup } from "@/components/ProfilePopup"
 import { CommentSection } from "../../../src/components/comment-section"
 import { ShareDialog } from "@/components/share-dialog"
+import { PostPageClient } from "@/components/post-page-client"
 
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
@@ -84,105 +85,18 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           )}
 
-          <Card className="mb-6">
-            <CardHeader className="space-y-4">
-              <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-              <div className="flex items-start gap-4">
-                  <ProfilePopup username={post.author?.username || "Unknown"}>
-                    <Avatar className="h-10 w-10 border">
-                    <AvatarImage
-                      src={
-                        post.author?.avatar_url ||
-                          `/placeholder.svg?height=40&width=40&query=${post.author?.username}`
-                      }
-                        alt={post.author?.username || "Unknown"}
-                    />
-                      <AvatarFallback>
-                        {post.author?.username?.slice(0, 2).toUpperCase() || "UN"}
-                      </AvatarFallback>
-                  </Avatar>
-                </ProfilePopup>
-                  <div>
-                    <h1 className="text-2xl font-bold">{post.title}</h1>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mt-1">
-                      <span className="text-muted-foreground">
-                        Posted by{" "}
-                        <Link
-                          href={`/profile/${post.author?.username || "unknown"}`}
-                          className="font-medium text-primary hover:underline"
-                        >
-                          {post.author?.username || "Unknown"}
-                        </Link>
-                      </span>
-                      <div className="flex items-center text-muted-foreground">
-                        <Calendar className="h-3 w-3 mr-1" />
-                        {formatDate(post.created_at)}
-                        {post.is_edited && (
-                          <div className="flex items-center ml-2 text-xs">
-                            <Clock className="h-3 w-3 mr-1" />
-                            <span>edited</span>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex items-center text-muted-foreground">
-                        <Eye className="h-3 w-3 mr-1" />
-                        {post.views} views
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div>
-                  <Badge variant="outline" className="ml-auto">
-                    { post.category?.name}
-                  </Badge>
-                </div>
-              </div>
-
-              {tagsData.length > 0 && (
-                <div>
-                  <PostTags tags={tagsData} />
-                </div>
-              )}
-            </CardHeader>
-
-            <CardContent>
-                <PostContent content={post.content} />
-            </CardContent>
-
-            <CardFooter className="flex justify-between p-6 border-t bg-muted/20">
-              <div className="flex items-center gap-4">
-                <VoteButtons postId={post.id} initialVotes={post.total_votes} />
-                <Button variant="ghost" size="sm" className="flex items-center gap-1">
-                  <MessageSquare className="h-4 w-4" />
-                  <span>Reply</span>
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <BookmarkButton postId={post.id} initialBookmarked={isBookmarked} />
-                <ShareDialog url={`/post/${resolvedParams.slug}`} title={post.title}>
-                <Button variant="ghost" size="icon">
-                  <Share2 className="h-4 w-4" />
-                </Button>
-                </ShareDialog>
-                <ReportDialog contentType="post" contentId={post.id}>
-                  <Button variant="ghost" size="icon">
-                    <Flag className="h-4 w-4" />
-                  </Button>
-                </ReportDialog>
-              </div>
-            </CardFooter>
-          </Card>
-
           <h2 className="text-xl font-semibold mt-6 mb-4 flex items-center gap-2">
             <MessageSquare className="h-5 w-5 text-primary" />
             Replies ({comments.length})
           </h2>
 
-          <CommentSection 
-            comments={comments} 
-            postId={post.id} 
-            slug={resolvedParams.slug} 
-            user={user} 
+          <PostPageClient 
+            post={post}
+            comments={comments}
+            user={user}
+            isBookmarked={isBookmarked}
+            tagsData={tagsData}
+            slug={resolvedParams.slug}
           />
         </div>
       </div>
