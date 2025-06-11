@@ -86,11 +86,6 @@ export default function SimpleLoginPage() {
                 required
               />
             </div>
-            <div className="text-sm">
-              <Link href="/debug/sql-create-user" className="text-primary hover:underline">
-                Create a test user first
-              </Link>
-            </div>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Link href="/">

@@ -54,8 +54,6 @@ export default async function Home() {
             Browse Tags
           </Button>
         </Link>
-        <Link href="/debug/sql-create-user">
-        </Link>
         {/* <Link href="/simple-login">
           <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
             <LogIn className="h-4 w-4" />
