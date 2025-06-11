@@ -145,6 +145,8 @@ export function NotificationsDropdown({
         return "🔖"
       case "follow":
         return "👤"
+      case "report":
+        return "🚩"
       default:
         return "🔔"
     }
@@ -167,10 +169,10 @@ export function NotificationsDropdown({
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
         <div className="flex items-center justify-between p-4">
-          <h3 className="font-medium">Известия</h3>
+          <h3 className="font-medium">Notifications</h3>
           {unreadCount > 0 && (
             <Button variant="ghost" size="sm" onClick={handleMarkAllAsRead}>
-              Маркирай всички като прочетени
+              Mark all as read
             </Button>
           )}
         </div>
@@ -195,13 +197,13 @@ export function NotificationsDropdown({
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link href="/notifications" className="w-full p-4 text-center text-sm text-primary">
-                Виж всички известия
+                View all notifications
               </Link>
             </DropdownMenuItem>
           </>
         ) : (
           <div className="p-4 text-center text-sm text-muted-foreground">
-            <p>Нямате известия</p>
+            <p>No notifications</p>
           </div>
         )}
       </DropdownMenuContent>

@@ -139,10 +139,14 @@ export async function markAllNotificationsAsRead() {
   const user = await getUser()
 
   if (!user) {
-    return { error: "Трябва да сте влезли в профила си, за да маркирате известията като прочетени" }
+    return { error: "You must be logged in to mark notifications as read" }
   }
 
-  const { error } = await supabase.from("notifications").update({ is_read: true }).eq("user_id", user.id)
+  const { error } = await supabase
+    .from("notifications")
+    .update({ is_read: true })
+    .eq("user_id", user.id)
+    .eq("is_read", false)
 
   if (error) {
     console.error("Error marking all notifications as read:", error)

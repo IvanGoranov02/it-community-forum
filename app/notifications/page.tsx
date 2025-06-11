@@ -67,19 +67,21 @@ export default async function NotificationsPage() {
       <div className="mb-6">
         <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground mb-4">
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Обратно към форума
+          Back to forum
         </Link>
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Известия</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
             <p className="text-muted-foreground mt-1">
-              Бъдете в течение с активността, свързана с вашите постове и коментари
+              Stay updated with activity related to your posts and comments
             </p>
           </div>
-          <form action={markAllNotificationsAsRead}>
+          <form action={async () => {
+            await markAllNotificationsAsRead();
+          }}>
             <Button type="submit" variant="outline" size="sm" className="flex items-center gap-1">
               <Check className="h-4 w-4" />
-              Маркирай всички като прочетени
+              Mark all as read
             </Button>
           </form>
         </div>
@@ -87,8 +89,8 @@ export default async function NotificationsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Вашите известия</CardTitle>
-          <CardDescription>Имате {validatedNotifications.length} известия</CardDescription>
+          <CardTitle>Your notifications</CardTitle>
+          <CardDescription>You have {validatedNotifications.length} notifications</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
           {validatedNotifications.length > 0 ? (
@@ -111,7 +113,7 @@ export default async function NotificationsPage() {
             ))
           ) : (
             <div className="text-center py-8">
-              <p className="text-muted-foreground">Нямате известия</p>
+              <p className="text-muted-foreground">No notifications</p>
             </div>
           )}
         </CardContent>

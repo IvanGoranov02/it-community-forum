@@ -1,1 +1,1 @@
-export type NotificationType = "comment" | "mention" | "vote" | "bookmark" | "follow" | "system"
+export type NotificationType = "comment" | "mention" | "vote" | "bookmark" | "follow" | "system" | "report"
