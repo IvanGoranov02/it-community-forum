@@ -118,8 +118,9 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         description: "Please check your email to confirm your account.",
       })
 
-      // Redirect to login page
+      // Redirect to login page and stop loading
       router.push("/login?message=registration-success")
+      stopLoading()
     } catch (error) {
       console.error("Unexpected error during registration:", error)
       setErrorMessage("An unexpected error occurred during registration")
