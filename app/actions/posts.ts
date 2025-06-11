@@ -101,7 +101,7 @@ export async function createPostWithTags(formData: FormData) {
       }
     }
 
-    // Обработваме споменаванията
+    // Обработваме споменатите потребители
     const mentions = extractMentions(content)
     if (mentions.length > 0) {
       // Вземаме всички споменати потребители
@@ -233,7 +233,7 @@ export async function updatePost(formData: FormData) {
     // Check if user is the author
     const { data: post, error: postCheckError } = await supabase
       .from("posts")
-      .select("author_id, slug")
+      .select("author_id, slug, title, content, category_id")
       .eq("id", postId)
       .single()
 
@@ -246,6 +246,9 @@ export async function updatePost(formData: FormData) {
       return { error: "You are not authorized to update this post" }
     }
 
+    // Check if the content actually changed
+    const contentChanged = post.content !== content || post.title !== title || post.category_id !== categoryId
+
     // Update post
     const { error: updateError } = await supabase
       .from("posts")
@@ -254,6 +257,7 @@ export async function updatePost(formData: FormData) {
         content,
         category_id: categoryId,
         updated_at: new Date().toISOString(),
+        is_edited: contentChanged ? true : undefined, // Only set is_edited if content changed
       })
       .eq("id", postId)
 
@@ -283,6 +287,30 @@ export async function updatePost(formData: FormData) {
       if (tagError) {
         console.error("Error adding tags to post:", tagError)
         // We don't return an error here because the post was updated successfully
+      }
+    }
+
+    // Process mentions
+    if (contentChanged) {
+      const mentions = extractMentions(content)
+      if (mentions.length > 0) {
+        // Get all mentioned users
+        const { data: mentionedUsers } = await supabase.from("profiles").select("id, username").in("username", mentions)
+
+        // Create notifications for mentioned users
+        if (mentionedUsers) {
+          for (const mentionedUser of mentionedUsers) {
+            if (mentionedUser.id !== user.id) {
+              // Don't notify yourself
+              await createNotification(
+                mentionedUser.id,
+                `${user.name || "Someone"} mentioned you in an updated post: "${title}"`,
+                `/post/${post.slug}`,
+                "mention",
+              )
+            }
+          }
+        }
       }
     }
 

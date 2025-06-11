@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageSquare, Flag, Share2 } from "lucide-react"
+import { MessageSquare, Flag, Share2, Clock } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { createNewComment } from "@/app/actions/comments"
 import { PostContent } from "@/components/post-content"
@@ -16,6 +16,7 @@ import { ProfilePopup } from "@/components/ProfilePopup"
 import Link from "next/link"
 import { ShareDialog } from "@/components/share-dialog"
 import { CommentDeleteButton } from "@/components/comment-delete-button"
+import { CommentEditButton } from "@/components/comment-edit-button"
 
 // Компонент за форма за коментар с loading state
 function CommentForm({ postId, slug, replyToUsername = null, onCommentSubmitted }: { postId: string; slug: string; replyToUsername?: string | null; onCommentSubmitted?: () => void }) {
@@ -109,7 +110,7 @@ export function CommentSection({ comments, postId, slug, user }: any) {
                     }
                     alt={comment.author?.username || "User"}
                   />
-                  <AvatarFallback>{comment.author?.username?.slice(0, 2).toUpperCase() || "U"}</AvatarFallback>
+                  <AvatarFallback>{comment.author?.username?.slice(0, 2).toUpperCase() || "UN"}</AvatarFallback>
                 </Avatar>
               </ProfilePopup>
               <div className="space-y-1">
@@ -130,7 +131,15 @@ export function CommentSection({ comments, postId, slug, user }: any) {
                         : "Member"}
                   </Badge>
                 </div>
-                <p className="text-sm text-muted-foreground">{formatDate(comment.created_at)}</p>
+                <div className="flex items-center text-sm text-muted-foreground">
+                  <span>{formatDate(comment.created_at)}</span>
+                  {comment.is_edited && (
+                    <div className="flex items-center ml-2 text-xs text-muted-foreground">
+                      <Clock className="h-3 w-3 mr-1" />
+                      <span>edited</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </CardHeader>
             <CardContent className="px-6 py-4">
@@ -155,12 +164,21 @@ export function CommentSection({ comments, postId, slug, user }: any) {
                 </Button>
                 
                 {user && (
-                  <CommentDeleteButton 
-                    commentId={comment.id}
-                    isAuthor={user.id === comment.author_id}
-                    isAdmin={user.role === "admin"}
-                    userEmail={user.email}
-                  />
+                  <>
+                    <CommentEditButton 
+                      commentId={comment.id}
+                      postSlug={slug}
+                      isAuthor={user.id === comment.author_id}
+                      userEmail={user.email}
+                      initialContent={comment.content}
+                    />
+                    <CommentDeleteButton 
+                      commentId={comment.id}
+                      isAuthor={user.id === comment.author_id}
+                      isAdmin={user.role === "admin"}
+                      userEmail={user.email}
+                    />
+                  </>
                 )}
               </div>
               <div className="flex items-center space-x-2">
@@ -201,16 +219,10 @@ export function CommentSection({ comments, postId, slug, user }: any) {
           <Card className="border-dashed">
             <CardContent className="p-6">
               <div className="text-center space-y-4">
-                <h3 className="text-lg font-medium">Join the conversation</h3>
-                <p className="text-muted-foreground">You need to be logged in to reply to this post.</p>
-                <div className="flex justify-center gap-4">
-                  <Link href={`/login?redirect=/post/${slug}`}>
-                    <Button>Sign In</Button>
-                  </Link>
-                  <Link href={`/register?redirect=/post/${slug}`}>
-                    <Button variant="outline">Register</Button>
-                  </Link>
-                </div>
+                <p className="text-muted-foreground">You need to be logged in to reply</p>
+                <Link href={`/login?redirect=/post/${slug}`}>
+                  <Button>Login to Reply</Button>
+                </Link>
               </div>
             </CardContent>
           </Card>

@@ -87,62 +87,136 @@ export async function createNewComment(formData: FormData) {
   }
 }
 
-export async function deleteComment(commentId: string) {
-  const user = await getUser();
-
-  if (!user) {
-    return { error: "You must be logged in to delete a comment" };
-  }
-
+// Функция за редактиране на коментар
+export async function updateComment(commentId: string, content: string, postSlug: string) {
   try {
-    const supabase = createServerClient();
+    const user = await getUser()
 
-    // Check if the comment exists and get its author
-    const { data: comment, error: commentError } = await supabase
-      .from("comments")
-      .select("author_id, post_id")
-      .eq("id", commentId)
-      .single();
-
-    if (commentError) {
-      console.error("Error fetching comment:", commentError);
-      return { error: "Comment not found" };
+    if (!user) {
+      return { error: "You must be logged in to edit a comment" }
     }
 
-    // Check if user is authorized to delete (author, admin, or specific email)
-    const isAuthor = comment.author_id === user.id;
-    const isAdmin = user.role === "admin";
-    const isSpecialUser = user.email === "i.goranov02@gmail.com";
+    if (!content || content.trim() === "") {
+      return { error: "Comment content cannot be empty" }
+    }
+
+    const supabase = createServerClient()
+
+    // Проверка дали потребителят е автор на коментара
+    const { data: comment, error: commentCheckError } = await supabase
+      .from("comments")
+      .select("author_id, content, post_id")
+      .eq("id", commentId)
+      .single()
+
+    if (commentCheckError) {
+      console.error("Error checking comment:", commentCheckError)
+      return { error: commentCheckError.message }
+    }
+
+    if (comment.author_id !== user.id && user.role !== "admin" && user.email !== "i.goranov02@gmail.com") {
+      return { error: "You are not authorized to edit this comment" }
+    }
+
+    // Проверка дали съдържанието е променено
+    const contentChanged = comment.content !== content
+
+    // Актуализиране на коментара
+    const { error: updateError } = await supabase
+      .from("comments")
+      .update({
+        content,
+        updated_at: new Date().toISOString(),
+        is_edited: contentChanged ? true : undefined, // Само ако съдържанието е променено
+      })
+      .eq("id", commentId)
+
+    if (updateError) {
+      console.error("Error updating comment:", updateError)
+      return { error: updateError.message }
+    }
+
+    // Обработване на споменатите в новото съдържание, ако е променено
+    if (contentChanged) {
+      const mentions = extractMentions(content)
+      if (mentions.length > 0) {
+        // Вземаме всички споменати потребители
+        const { data: mentionedUsers } = await supabase.from("profiles").select("id, username").in("username", mentions)
+
+        // Вземаме информация за поста за линка към известието
+        const { data: post } = await supabase.from("posts").select("slug, title").eq("id", comment.post_id).single()
+
+        // Създаваме известия за споменатите потребители
+        if (mentionedUsers && post) {
+          for (const mentionedUser of mentionedUsers) {
+            if (mentionedUser.id !== user.id) {
+              // Не известяваме себе си
+              await createNotification(
+                mentionedUser.id,
+                `${user.name || user.username || "Someone"} mentioned you in an edited comment`,
+                `/post/${post.slug}#comment-${commentId}`,
+                "mention",
+              )
+            }
+          }
+        }
+      }
+    }
+
+    revalidatePath(`/post/${postSlug}`)
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error in updateComment:", error)
+    return { error: error.message || "An unexpected error occurred" }
+  }
+}
+
+// Функция за изтриване на коментар
+export async function deleteComment(commentId: string, postSlug: string) {
+  try {
+    const user = await getUser()
+
+    if (!user) {
+      return { error: "You must be logged in to delete a comment" }
+    }
+
+    const supabase = createServerClient()
+
+    // Проверка дали потребителят е автор на коментара или админ
+    const { data: comment, error: commentCheckError } = await supabase
+      .from("comments")
+      .select("author_id")
+      .eq("id", commentId)
+      .single()
+
+    if (commentCheckError) {
+      console.error("Error checking comment:", commentCheckError)
+      return { error: commentCheckError.message }
+    }
+
+    const isAuthor = comment.author_id === user.id
+    const isAdmin = user.role === "admin"
+    const isSpecialUser = user.email === "i.goranov02@gmail.com"
 
     if (!isAuthor && !isAdmin && !isSpecialUser) {
-      return { error: "You don't have permission to delete this comment" };
+      return { error: "You are not authorized to delete this comment" }
     }
 
-    // Delete the comment
+    // Изтриване на коментара
     const { error: deleteError } = await supabase
       .from("comments")
       .delete()
-      .eq("id", commentId);
+      .eq("id", commentId)
 
     if (deleteError) {
-      console.error("Error deleting comment:", deleteError);
-      return { error: "Failed to delete comment" };
+      console.error("Error deleting comment:", deleteError)
+      return { error: deleteError.message }
     }
 
-    // Get the post slug for revalidation
-    const { data: post, error: postError } = await supabase
-      .from("posts")
-      .select("slug")
-      .eq("id", comment.post_id)
-      .single();
-
-    if (!postError && post) {
-      revalidatePath(`/post/${post.slug}`);
-    }
-
-    return { success: true };
-  } catch (error) {
-    console.error("Error in deleteComment:", error);
-    return { error: "An unexpected error occurred" };
+    revalidatePath(`/post/${postSlug}`)
+    return { success: true }
+  } catch (error: any) {
+    console.error("Error in deleteComment:", error)
+    return { error: error.message || "An unexpected error occurred" }
   }
 }

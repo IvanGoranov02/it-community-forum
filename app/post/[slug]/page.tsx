@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { ChevronLeft, MessageSquare, Flag, Share2, Eye, Calendar } from "lucide-react"
+import { ChevronLeft, MessageSquare, Flag, Share2, Eye, Calendar, Clock } from "lucide-react"
 import { getPostBySlug, getCommentsByPostId } from "@/lib/api"
 import { getUser } from "@/app/actions/auth"
 import { formatDate } from "@/lib/utils"
@@ -67,10 +67,10 @@ export default async function PostPage({ params }: PostPageProps) {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center mb-6">
             <Link href="/" className="flex items-center text-sm text-muted-foreground hover:text-primary">
-              <ChevronLeft className="h-4 w-4 mr-1" />
+            <ChevronLeft className="h-4 w-4 mr-1" />
               Back to home
             </Link>
-          </div>
+            </div>
 
           {(isAuthor || isAdmin || user?.email === "i.goranov02@gmail.com") && (
             <div className="mb-6">
@@ -87,21 +87,21 @@ export default async function PostPage({ params }: PostPageProps) {
           <Card className="mb-6">
             <CardHeader className="space-y-4">
               <div className="flex flex-col md:flex-row md:justify-between md:items-start gap-4">
-                <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4">
                   <ProfilePopup username={post.author?.username || "Unknown"}>
                     <Avatar className="h-10 w-10 border">
-                      <AvatarImage
-                        src={
-                          post.author?.avatar_url ||
+                    <AvatarImage
+                      src={
+                        post.author?.avatar_url ||
                           `/placeholder.svg?height=40&width=40&query=${post.author?.username}`
-                        }
+                      }
                         alt={post.author?.username || "Unknown"}
-                      />
+                    />
                       <AvatarFallback>
                         {post.author?.username?.slice(0, 2).toUpperCase() || "UN"}
                       </AvatarFallback>
-                    </Avatar>
-                  </ProfilePopup>
+                  </Avatar>
+                </ProfilePopup>
                   <div>
                     <h1 className="text-2xl font-bold">{post.title}</h1>
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm mt-1">
@@ -117,6 +117,12 @@ export default async function PostPage({ params }: PostPageProps) {
                       <div className="flex items-center text-muted-foreground">
                         <Calendar className="h-3 w-3 mr-1" />
                         {formatDate(post.created_at)}
+                        {post.is_edited && (
+                          <div className="flex items-center ml-2 text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            <span>edited</span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex items-center text-muted-foreground">
                         <Eye className="h-3 w-3 mr-1" />
@@ -140,7 +146,7 @@ export default async function PostPage({ params }: PostPageProps) {
             </CardHeader>
 
             <CardContent>
-              <PostContent content={post.content} />
+                <PostContent content={post.content} />
             </CardContent>
 
             <CardFooter className="flex justify-between p-6 border-t bg-muted/20">
@@ -154,9 +160,9 @@ export default async function PostPage({ params }: PostPageProps) {
               <div className="flex items-center gap-2">
                 <BookmarkButton postId={post.id} initialBookmarked={isBookmarked} />
                 <ShareDialog url={`/post/${resolvedParams.slug}`} title={post.title}>
-                  <Button variant="ghost" size="icon">
-                    <Share2 className="h-4 w-4" />
-                  </Button>
+                <Button variant="ghost" size="icon">
+                  <Share2 className="h-4 w-4" />
+                </Button>
                 </ShareDialog>
                 <ReportDialog contentType="post" contentId={post.id}>
                   <Button variant="ghost" size="icon">
