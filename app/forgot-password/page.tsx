@@ -26,12 +26,12 @@ export default function ForgotPasswordPage() {
     try {
       const supabase = createBrowserClient()
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${siteUrl}/login?magic=1`,
-        },
+      
+      // Use resetPasswordForEmail instead of signInWithOtp for proper password reset flow
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${siteUrl}/auth/callback?type=recovery`,
       })
+      
       if (error) {
         toast({
           title: "Error",
@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
         setIsSubmitted(true)
         toast({
           title: "Reset link sent",
-          description: "Check your email for a login link. After login, you can set a new password.",
+          description: "Check your email for a password reset link.",
         })
       }
     } catch (error) {
@@ -61,7 +61,7 @@ export default function ForgotPasswordPage() {
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
           <CardTitle className="text-2xl">Forgot Password</CardTitle>
-          <CardDescription>Enter your email to receive a magic login link. After login, you can set a new password.</CardDescription>
+          <CardDescription>Enter your email to receive a password reset link.</CardDescription>
         </CardHeader>
         {!isSubmitted ? (
           <form onSubmit={handleSubmit}>
@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
             <div className="bg-green-50 p-4 rounded-md text-green-800">
               <p className="font-medium">Reset link sent!</p>
               <p className="mt-2">
-                Check your email for a login link. After login, you will be redirected to set a new password.
+                Check your email for a password reset link. Follow the link to set a new password.
               </p>
             </div>
             <div className="text-center mt-4">

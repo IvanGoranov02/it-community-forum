@@ -29,36 +29,38 @@ export function AuthHashHandler() {
           const type = params.get("type")
           
           // Check if this is an auth response
-          if (accessToken && refreshToken && (type === "signup" || type === "recovery")) {
+          if (accessToken && (type === "signup" || type === "recovery")) {
             // Get Supabase client
             const supabase = createBrowserClient()
             
-            // Set the session manually
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken
-            })
-            
-            // Store the session in localStorage for client-side auth
-            const session = {
-              access_token: accessToken,
-              refresh_token: refreshToken,
-              // Set a reasonable expiry (3600 seconds = 1 hour)
-              expires_at: Math.floor(Date.now() / 1000) + 3600
-            }
-            localStorage.setItem("supabase-auth", JSON.stringify(session))
-            
-            // Also set the cookie via API for server-side auth
-            try {
-              await fetch("/api/set-auth-cookie", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json"
-                },
-                body: JSON.stringify({ session })
+            // Set the session manually if we have both tokens
+            if (refreshToken) {
+              await supabase.auth.setSession({
+                access_token: accessToken,
+                refresh_token: refreshToken
               })
-            } catch (error) {
-              console.warn("Failed to set server-side cookie, but client auth should still work", error)
+            
+              // Store the session in localStorage for client-side auth
+              const session = {
+                access_token: accessToken,
+                refresh_token: refreshToken,
+                // Set a reasonable expiry (3600 seconds = 1 hour)
+                expires_at: Math.floor(Date.now() / 1000) + 3600
+              }
+              localStorage.setItem("supabase-auth", JSON.stringify(session))
+              
+              // Also set the cookie via API for server-side auth
+              try {
+                await fetch("/api/set-auth-cookie", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json"
+                  },
+                  body: JSON.stringify({ session })
+                })
+              } catch (error) {
+                console.warn("Failed to set server-side cookie, but client auth should still work", error)
+              }
             }
             
             // Show a success message based on the auth type
@@ -72,12 +74,15 @@ export function AuthHashHandler() {
               window.location.href = "/"
             } else if (type === "recovery") {
               toast({
-                title: "Login successful",
+                title: "Authentication successful",
                 description: "You can now reset your password.",
               })
               
-              // Redirect to password reset page
-              window.location.href = "/reset-password"
+              // For recovery links, construct the proper URL with all parameters
+              const url = `/reset-password?access_token=${encodeURIComponent(accessToken)}${refreshToken ? `&refresh_token=${encodeURIComponent(refreshToken)}` : ''}&type=recovery`
+              
+              // Use window.location for a full page reload to ensure parameters are properly handled
+              window.location.href = url
             }
           }
         } catch (error) {

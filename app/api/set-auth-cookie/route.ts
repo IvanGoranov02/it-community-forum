@@ -4,14 +4,14 @@ export async function POST(request: Request) {
   try {
     const { session } = await request.json()
 
-    if (!session || !session.access_token || !session.refresh_token) {
+    if (!session || !session.access_token) {
       return NextResponse.json({ error: "Invalid session data" }, { status: 400 })
     }
 
     // Create a response
     const response = NextResponse.json({ success: true })
     
-    // Set the auth cookie directly in the response
+    // Set the auth cookie directly on the response
     response.cookies.set({
       name: "supabase-auth",
       value: JSON.stringify(session),
@@ -25,12 +25,6 @@ export async function POST(request: Request) {
     return response
   } catch (error) {
     console.error("Error setting auth cookie:", error)
-    return NextResponse.json(
-      {
-        error: "An unexpected error occurred",
-        details: error instanceof Error ? error.message : String(error),
-      },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: "Failed to set auth cookie" }, { status: 500 })
   }
 } 

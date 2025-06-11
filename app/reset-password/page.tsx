@@ -26,11 +26,12 @@ export default function ResetPasswordPage() {
   const type = searchParams.get("type");
 
   useEffect(() => {
-    // Ако има токен и type=recovery, не прави redirect!
+    // If we have a valid recovery token, no need to check session or redirect
     if (accessToken && type === "recovery") {
       return;
     }
-    // Check if we have a session from the password reset link
+    
+    // Otherwise check if we have a valid session
     const checkSession = async () => {
       const supabase = createBrowserClient()
       const { data, error } = await supabase.auth.getSession()
@@ -54,21 +55,39 @@ export default function ResetPasswordPage() {
       const params = new URLSearchParams(hash);
       const accessToken = params.get("access_token");
       const type = params.get("type");
+      
       if (accessToken && type === "recovery") {
-        const url = `/reset-password?access_token=${encodeURIComponent(accessToken)}&type=${encodeURIComponent(type)}`;
-        router.replace(url);
+        // Get all parameters from the hash
+        const refreshToken = params.get("refresh_token");
+        
+        // Build the new URL with query parameters
+        const queryParams = new URLSearchParams();
+        queryParams.set("access_token", accessToken);
+        if (refreshToken) queryParams.set("refresh_token", refreshToken);
+        queryParams.set("type", type);
+        
+        // Replace the current URL with query parameters instead of hash
+        router.replace(`/reset-password?${queryParams.toString()}`);
       }
     }
   }, [router]);
 
-  // Set Supabase session if access_token and refresh_token are present
+  // Set Supabase session if access_token is present
   useEffect(() => {
-    if (accessToken && refreshToken && type === "recovery") {
+    if (accessToken && type === "recovery") {
       const supabase = createBrowserClient();
-      supabase.auth.setSession({
-        access_token: accessToken,
-        refresh_token: refreshToken,
-      });
+      
+      // If we have both tokens, set a full session
+      if (refreshToken) {
+        supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+      } else {
+        // If we only have access_token (which is common for password recovery),
+        // we can still use it for the updateUser call
+        console.log("Setting up with access token only (no refresh token)");
+      }
     }
   }, [accessToken, refreshToken, type]);
 
@@ -90,9 +109,12 @@ export default function ResetPasswordPage() {
 
     try {
       const supabase = createBrowserClient()
-      const { error } = await supabase.auth.updateUser({
-        password,
-      })
+      
+      // If we have an access token, use it directly
+      let updateUserOpts = { password };
+      
+      // Make the update user call
+      const { error } = await supabase.auth.updateUser(updateUserOpts)
 
       if (error) {
         setError(error.message)
