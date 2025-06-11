@@ -7,13 +7,14 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Textarea } from "@/components/ui/textarea"
-import { MessageSquare, Flag } from "lucide-react"
+import { MessageSquare, Flag, Share2 } from "lucide-react"
 import { formatDate } from "@/lib/utils"
 import { createNewComment } from "@/app/actions/comments"
 import { PostContent } from "@/components/post-content"
 import { ReportDialog } from "@/components/report-dialog"
 import { ProfilePopup } from "@/components/ProfilePopup"
 import Link from "next/link"
+import { ShareDialog } from "@/components/share-dialog"
 
 // Компонент за форма за коментар с loading state
 function CommentForm({ postId, slug, replyToUsername = null, onCommentSubmitted }: { postId: string; slug: string; replyToUsername?: string | null; onCommentSubmitted?: () => void }) {
@@ -152,7 +153,13 @@ export function CommentSection({ comments, postId, slug, user }: any) {
                   <span>Reply</span>
                 </Button>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center space-x-2">
+                <ShareDialog url={`/post/${slug}#comment-${comment.id}`} title="Share this comment">
+                  <Button variant="ghost" size="sm">
+                    <Share2 className="h-4 w-4 mr-1" />
+                    Share
+                  </Button>
+                </ShareDialog>
                 <ReportDialog contentType="comment" contentId={comment.id}>
                   <Button variant="ghost" size="icon">
                     <Flag className="h-4 w-4" />

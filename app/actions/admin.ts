@@ -5,6 +5,7 @@ import { getUser } from "@/app/actions/auth"
 import { revalidatePath } from "next/cache"
 import { redirect } from "next/navigation"
 import type { UserRole, AdminStats, UserManagementFilters, AdminSettings, PostSettings } from "@/types/admin"
+import { sendReportNotification } from "@/lib/email"
 
 // Помощна функция за проверка на администраторски права
 async function checkAdminAccess() {
@@ -368,12 +369,12 @@ export async function reportContent(
   const user = await getUser()
 
   if (!user) {
-    return { error: "Трябва да сте влезли в профила си, за да докладвате съдържание" }
+    return { error: "You must be logged in to report content" }
   }
 
   const supabase = createServerClient()
 
-  // Проверка дали потребителят вече е докладвал това съдържание
+  // Check if the user has already reported this content
   const { data: existingReport } = await supabase
     .from("content_reports")
     .select("id")
@@ -383,10 +384,52 @@ export async function reportContent(
     .maybeSingle()
 
   if (existingReport) {
-    return { error: "Вече сте докладвали това съдържание" }
+    return { error: "You have already reported this content" }
   }
 
-  // Създаване на нов доклад
+  // Get content details for the email notification
+  let contentAuthor = "";
+  let contentTitle = "";
+  let contentExcerpt = "";
+
+  try {
+    if (contentType === "post") {
+      const { data: post } = await supabase
+        .from("posts")
+        .select(`
+          title,
+          content,
+          author:profiles!author_id(username)
+        `)
+        .eq("id", contentId)
+        .single();
+      
+      if (post) {
+        contentAuthor = post.author?.username || "Unknown";
+        contentTitle = post.title || "";
+        contentExcerpt = post.content ? post.content.substring(0, 200) + (post.content.length > 200 ? "..." : "") : "";
+      }
+    } else if (contentType === "comment") {
+      const { data: comment } = await supabase
+        .from("comments")
+        .select(`
+          content,
+          author:profiles!author_id(username)
+        `)
+        .eq("id", contentId)
+        .single();
+      
+      if (comment) {
+        contentAuthor = comment.author?.username || "Unknown";
+        contentExcerpt = comment.content ? comment.content.substring(0, 200) + (comment.content.length > 200 ? "..." : "") : "";
+      }
+    }
+  } catch (fetchError) {
+    console.error("Error fetching content details for report:", fetchError);
+    // Continue with the report even if we can't get content details
+  }
+
+  // Create a new report
   const { error } = await supabase.from("content_reports").insert({
     content_type: contentType,
     content_id: contentId,
@@ -401,6 +444,23 @@ export async function reportContent(
   if (error) {
     console.error("Error reporting content:", error)
     return { error: error.message }
+  }
+
+  // Send email notification to admins
+  try {
+    await sendReportNotification({
+      contentType,
+      contentId,
+      reason,
+      details,
+      reporterUsername: user.username,
+      contentAuthor,
+      contentTitle,
+      contentExcerpt,
+    });
+  } catch (emailError) {
+    console.error("Error sending report notification email:", emailError);
+    // We don't return an error here as the report was still created successfully
   }
 
   return { success: true }

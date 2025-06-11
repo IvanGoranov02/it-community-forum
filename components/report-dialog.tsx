@@ -36,8 +36,8 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
   const handleSubmit = async () => {
     if (!reason) {
       toast({
-        title: "Грешка",
-        description: "Моля, изберете причина за доклада",
+        title: "Error",
+        description: "Please select a reason for the report",
         variant: "destructive",
       })
       return
@@ -49,14 +49,14 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
 
     if (result.error) {
       toast({
-        title: "Грешка",
+        title: "Error",
         description: result.error,
         variant: "destructive",
       })
     } else {
       toast({
-        title: "Успех",
-        description: "Докладът беше изпратен успешно",
+        title: "Success",
+        description: "Report submitted successfully",
       })
       setIsOpen(false)
       setReason("")
@@ -68,41 +68,41 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {children || (
-          <Button variant="ghost" size="icon" title="Докладвай съдържание">
+          <Button variant="ghost" size="icon" title="Report content">
             <Flag className="h-4 w-4" />
           </Button>
         )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Докладване на съдържание</DialogTitle>
-          <DialogDescription>Докладвайте това съдържание, ако нарушава правилата на форума</DialogDescription>
+          <DialogTitle>Report Content</DialogTitle>
+          <DialogDescription>Report this content if it violates forum rules</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
-            <Label htmlFor="reason">Причина</Label>
+            <Label htmlFor="reason">Reason</Label>
             <Select value={reason} onValueChange={setReason}>
               <SelectTrigger id="reason">
-                <SelectValue placeholder="Изберете причина" />
+                <SelectValue placeholder="Select a reason" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="spam">Спам</SelectItem>
-                <SelectItem value="harassment">Тормоз или обидно съдържание</SelectItem>
-                <SelectItem value="inappropriate">Неподходящо съдържание</SelectItem>
-                <SelectItem value="misinformation">Дезинформация</SelectItem>
-                <SelectItem value="other">Друго</SelectItem>
+                <SelectItem value="spam">Spam</SelectItem>
+                <SelectItem value="harassment">Harassment or offensive content</SelectItem>
+                <SelectItem value="inappropriate">Inappropriate content</SelectItem>
+                <SelectItem value="misinformation">Misinformation</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="details">Допълнителни детайли (по желание)</Label>
+            <Label htmlFor="details">Additional details (optional)</Label>
             <Textarea
               id="details"
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Опишете проблема по-подробно..."
+              placeholder="Describe the issue in more detail..."
               rows={4}
             />
           </div>
@@ -110,10 +110,10 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
 
         <DialogFooter>
           <Button variant="outline" onClick={() => setIsOpen(false)}>
-            Отказ
+            Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? "Изпращане..." : "Изпрати доклад"}
+            {isSubmitting ? "Submitting..." : "Submit report"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirm Your Email - IT Community Forum</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      border-bottom: 1px solid #eaeaea;
+    }
+    .logo {
+      max-width: 150px;
+      height: auto;
+    }
+    h1 {
+      color: #2563eb;
+      font-size: 24px;
+      margin-top: 20px;
+      margin-bottom: 10px;
+    }
+    .content {
+      padding: 30px 20px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #2563eb;
+      color: white !important;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+      text-align: center;
+    }
+    .button:hover {
+      background-color: #1d4ed8;
+    }
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #6b7280;
+      font-size: 14px;
+      border-top: 1px solid #eaeaea;
+    }
+    .social-links {
+      margin-top: 15px;
+    }
+    .social-link {
+      display: inline-block;
+      margin: 0 10px;
+    }
+    .highlight {
+      background-color: #f0f9ff;
+      border-left: 4px solid #2563eb;
+      padding: 15px;
+      margin: 20px 0;
+    }
+    .security-note {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 15px;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .expiry {
+      font-style: italic;
+      font-size: 14px;
+      color: #6b7280;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="https://your-website.com/logo.png" alt="IT Community Forum Logo" class="logo">
+      <h1>Confirm Your Email Address</h1>
+    </div>
+    
+    <div class="content">
+      <p>Hello,</p>
+      
+      <p>Thank you for registering with IT Community Forum! To complete your registration and activate your account, please confirm your email address by clicking the button below:</p>
+      
+      <div class="highlight">
+        <p>This verification ensures that we have the correct email address to reach you.</p>
+      </div>
+      
+      <div style="text-align: center;">
+        <a href="{{ .MagicLink }}" class="button">CONFIRM EMAIL ADDRESS</a>
+      </div>
+      
+      <p class="expiry">This link will expire in 24 hours.</p>
+      
+      <p>Or copy and paste the following link into your browser:</p>
+      <p style="word-break: break-all; font-size: 14px; color: #4b5563;">{{ .MagicLink }}</p>
+      
+      <div class="security-note">
+        <p><strong>Security Notice:</strong> If you didn't create an account on IT Community Forum, please ignore this email or contact us if you believe this was sent to you by mistake.</p>
+      </div>
+      
+      <p>After confirming your email, you'll have full access to all features of IT Community Forum, including:</p>
+      <ul>
+        <li>Posting and participating in discussions</li>
+        <li>Connecting with other IT professionals</li>
+        <li>Accessing exclusive resources</li>
+      </ul>
+    </div>
+    
+    <div class="footer">
+      <p>&copy; 2023 IT Community Forum. All rights reserved.</p>
+      <p>Questions? Contact us at <a href="mailto:support@itforum.bg">support@itforum.bg</a></p>
+      
+      <div class="social-links">
+        <a href="https://facebook.com/itforumbg" class="social-link">Facebook</a>
+        <a href="https://linkedin.com/company/itforumbg" class="social-link">LinkedIn</a>
+      </div>
+    </div>
+  </div>
+</body>
+</html> 
