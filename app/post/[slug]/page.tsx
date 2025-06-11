@@ -122,7 +122,7 @@ export default async function PostPage({ params }: PostPageProps) {
                 </div>
                 <div>
                   <Badge variant="outline" className="ml-auto">
-                    {post.category.name}
+                    { post.category?.name}
                   </Badge>
                 </div>
               </div>

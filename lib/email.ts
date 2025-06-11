@@ -111,10 +111,27 @@ export async function sendReportNotification({
       html,
     };
     
-    const info = await getTransporter().sendMail(mailOptions);
-    return { success: true, messageId: info.messageId };
+    console.log('Sending email notification with options:', JSON.stringify({
+      to: mailOptions.to,
+      subject: mailOptions.subject,
+      contentType,
+      contentId,
+    }));
+    
+    const transporter = getTransporter();
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log('Email sent successfully:', info.messageId);
+    
+    return { 
+      success: true, 
+      messageId: info.messageId 
+    };
   } catch (error) {
     console.error('Error sending report notification email:', error);
-    return { success: false, error: error instanceof Error ? error.message : String(error) };
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : String(error) 
+    };
   }
 } 

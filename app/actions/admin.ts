@@ -373,6 +373,15 @@ export async function reportContent(
   }
 
   const supabase = createServerClient()
+  
+  // Get the username from the database
+  const { data: userProfile } = await supabase
+    .from("profiles")
+    .select("username")
+    .eq("id", user.id)
+    .single();
+    
+  const username = userProfile?.username || "Unknown User";
 
   // Check if the user has already reported this content
   const { data: existingReport } = await supabase
@@ -448,16 +457,26 @@ export async function reportContent(
 
   // Send email notification to admins
   try {
-    await sendReportNotification({
+    // Make sure we have the required data for the email
+    if (!username || !contentAuthor || !contentExcerpt) {
+      console.warn("Missing required data for email notification");
+    }
+    
+    const emailResult = await sendReportNotification({
       contentType,
       contentId,
       reason,
       details,
-      reporterUsername: user.username,
-      contentAuthor,
+      reporterUsername: username || "Unknown User",
+      contentAuthor: contentAuthor || "Unknown Author",
       contentTitle,
-      contentExcerpt,
+      contentExcerpt: contentExcerpt || "No content available",
     });
+    
+    if (!emailResult.success) {
+      console.warn("Email notification was not sent:", emailResult.error);
+      // We still return success as the report was created successfully
+    }
   } catch (emailError) {
     console.error("Error sending report notification email:", emailError);
     // We don't return an error here as the report was still created successfully

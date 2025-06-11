@@ -44,23 +44,33 @@ export function ReportDialog({ contentType, contentId, children }: ReportDialogP
     }
 
     setIsSubmitting(true)
-    const result = await reportContent(contentType, contentId, reason, details)
-    setIsSubmitting(false)
-
-    if (result.error) {
+    try {
+      const result = await reportContent(contentType, contentId, reason, details)
+      
+      if (result && result.error) {
+        toast({
+          title: "Error",
+          description: typeof result.error === 'string' ? result.error : "Failed to submit report",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Success",
+          description: "Report submitted successfully",
+        })
+        setIsOpen(false)
+        setReason("")
+        setDetails("")
+      }
+    } catch (error) {
+      console.error("Error submitting report:", error);
       toast({
         title: "Error",
-        description: result.error,
+        description: "An unexpected error occurred",
         variant: "destructive",
       })
-    } else {
-      toast({
-        title: "Success",
-        description: "Report submitted successfully",
-      })
-      setIsOpen(false)
-      setReason("")
-      setDetails("")
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
