@@ -3,8 +3,12 @@
 import { createContext, useContext, useState, type ReactNode } from "react"
 
 type User = {
-  email: string
+  id: string
+  email?: string
   name: string
+  username?: string
+  avatar?: string
+  role?: string
 } | null
 
 type AuthContextType = {

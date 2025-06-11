@@ -274,6 +274,15 @@ export function LoginForm({
           <Button type="submit" className="w-full" disabled={false}>
             Login
           </Button>
+          <div className="text-center text-sm">
+            Don't have an account?{" "}
+            <Link
+              href={`/register${redirectUrl !== "/" ? `?redirect=${redirectUrl}` : ""}`}
+              className="text-primary hover:underline"
+            >
+              Register
+            </Link>
+          </div>
         </CardFooter>
       </form>
       {/* Magic Link Login */}

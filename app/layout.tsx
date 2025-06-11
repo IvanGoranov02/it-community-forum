@@ -4,6 +4,8 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/app/context/auth-context"
 import { LoadingProvider } from "@/app/context/loading-context"
 import { getUser } from "@/app/actions/auth"
+import { AuthHashHandler } from "@/components/auth-hash-handler"
+import { CookieConsent } from "@/components/cookie-consent"
 import "./globals.css"
 import { GlobalLoader } from "../src/components/GlobalLoader"
 
@@ -60,7 +62,11 @@ sum(42, 27); // 69
         </div>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LoadingProvider>
-            <AuthProvider initialUser={user}>{children}</AuthProvider>
+            <AuthProvider initialUser={user}>
+              <AuthHashHandler />
+              {children}
+              <CookieConsent />
+            </AuthProvider>
           </LoadingProvider>
         </ThemeProvider>
       </body>
