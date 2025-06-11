@@ -43,8 +43,24 @@ export function NotificationsDropdown({
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 
+  console.log("NotificationsDropdown mounted with:", {
+    userId,
+    initialNotificationsCount: initialNotifications.length,
+    initialUnreadCount,
+  })
+  
+  console.log("Initial Notifications:", initialNotifications)
+
   useEffect(() => {
     const supabase = createBrowserClient()
+    console.log("Setting up realtime subscription for user:", userId)
+
+    // Test if Realtime is connected
+    const channels = supabase.realtime.getChannels()
+    console.log("Realtime state:", {
+      channels: channels.length,
+      channelsState: channels.length ? channels.map(c => c.state) : 'no channels'
+    })
 
     // Subscribe to new notifications
     const channel = supabase
@@ -58,14 +74,20 @@ export function NotificationsDropdown({
           filter: `user_id=eq.${userId}`,
         },
         (payload) => {
+          console.log("Received new notification:", payload)
           const newNotification = payload.new as Notification
           setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
           setUnreadCount((prev) => prev + 1)
         },
       )
-      .subscribe()
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status)
+      })
+
+    console.log("Realtime subscription activated, channel state:", channel.state)
 
     return () => {
+      console.log("Cleaning up realtime subscription")
       supabase.removeChannel(channel)
     }
   }, [userId])

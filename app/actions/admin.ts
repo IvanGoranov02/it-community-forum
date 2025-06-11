@@ -373,7 +373,7 @@ export async function reportContent(
   }
 
   const supabase = createServerClient()
-  
+
   // Get the username from the database
   const { data: userProfile } = await supabase
     .from("profiles")
