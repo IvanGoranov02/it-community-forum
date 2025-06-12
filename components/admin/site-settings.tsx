@@ -81,10 +81,19 @@ export function SiteSettings() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="general">Общи</TabsTrigger>
-            <TabsTrigger value="users">Потребители</TabsTrigger>
-            <TabsTrigger value="moderation">Модерация</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto">
+            <TabsTrigger value="general" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">General</span>
+              <span className="xs:hidden">General</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Users</span>
+              <span className="xs:hidden">Users</span>
+            </TabsTrigger>
+            <TabsTrigger value="moderation" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Moderation</span>
+              <span className="xs:hidden">Mod.</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="general" className="space-y-4">

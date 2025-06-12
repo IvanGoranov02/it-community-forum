@@ -119,18 +119,30 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
       </div>
 
       <Tabs defaultValue={sort} className="mb-8">
-        <TabsList className="grid w-full grid-cols-4 mb-6">
-          <TabsTrigger value="all" asChild>
-            <Link href={`/category/${resolvedParams.slug}`}>All Topics</Link>
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 h-auto">
+          <TabsTrigger value="all" asChild className="text-xs sm:text-sm py-2">
+            <Link href={`/category/${resolvedParams.slug}`}>
+              <span className="hidden xs:inline">All Topics</span>
+              <span className="xs:hidden">All</span>
+            </Link>
           </TabsTrigger>
-          <TabsTrigger value="popular" asChild>
-            <Link href={`/category/${resolvedParams.slug}?sort=popular`}>Popular</Link>
+          <TabsTrigger value="popular" asChild className="text-xs sm:text-sm py-2">
+            <Link href={`/category/${resolvedParams.slug}?sort=popular`}>
+              <span className="hidden xs:inline">Popular</span>
+              <span className="xs:hidden">Pop.</span>
+            </Link>
           </TabsTrigger>
-          <TabsTrigger value="recent" asChild>
-            <Link href={`/category/${resolvedParams.slug}?sort=recent`}>Recent</Link>
+          <TabsTrigger value="recent" asChild className="text-xs sm:text-sm py-2">
+            <Link href={`/category/${resolvedParams.slug}?sort=recent`}>
+              <span className="hidden xs:inline">Recent</span>
+              <span className="xs:hidden">New</span>
+            </Link>
           </TabsTrigger>
-          <TabsTrigger value="unanswered" asChild>
-            <Link href={`/category/${resolvedParams.slug}?sort=unanswered`}>Unanswered</Link>
+          <TabsTrigger value="unanswered" asChild className="text-xs sm:text-sm py-2">
+            <Link href={`/category/${resolvedParams.slug}?sort=unanswered`}>
+              <span className="hidden xs:inline">Unanswered</span>
+              <span className="xs:hidden">No Reply</span>
+            </Link>
           </TabsTrigger>
         </TabsList>
         <Card>

@@ -84,10 +84,19 @@ export function UserSettingsForm({ initialSettings }: UserSettingsFormProps) {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="notifications">Известия</TabsTrigger>
-        <TabsTrigger value="appearance">Външен вид</TabsTrigger>
-        <TabsTrigger value="account">Акаунт</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto">
+        <TabsTrigger value="notifications" className="text-xs sm:text-sm py-2">
+          <span className="hidden xs:inline">Notifications</span>
+          <span className="xs:hidden">Notif.</span>
+        </TabsTrigger>
+        <TabsTrigger value="appearance" className="text-xs sm:text-sm py-2">
+          <span className="hidden xs:inline">Appearance</span>
+          <span className="xs:hidden">Theme</span>
+        </TabsTrigger>
+        <TabsTrigger value="account" className="text-xs sm:text-sm py-2">
+          <span className="hidden xs:inline">Account</span>
+          <span className="xs:hidden">Account</span>
+        </TabsTrigger>
       </TabsList>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 pt-6">

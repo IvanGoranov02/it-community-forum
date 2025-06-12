@@ -80,10 +80,19 @@ export function PostSettingsPanel() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="permissions" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="permissions">Права</TabsTrigger>
-            <TabsTrigger value="content">Съдържание</TabsTrigger>
-            <TabsTrigger value="moderation">Модерация</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 h-auto">
+            <TabsTrigger value="permissions" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Permissions</span>
+              <span className="xs:hidden">Perms</span>
+            </TabsTrigger>
+            <TabsTrigger value="content" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Content</span>
+              <span className="xs:hidden">Content</span>
+            </TabsTrigger>
+            <TabsTrigger value="moderation" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Moderation</span>
+              <span className="xs:hidden">Mod.</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="permissions" className="space-y-4">

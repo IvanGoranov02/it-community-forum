@@ -110,9 +110,15 @@ export function ContentModeration() {
       </CardHeader>
       <CardContent>
         <Tabs defaultValue="pending" onValueChange={(value) => setActiveTab(value as "pending" | "all")}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="pending">Чакащи ({isLoading ? "..." : reports.length})</TabsTrigger>
-            <TabsTrigger value="all">Всички доклади</TabsTrigger>
+          <TabsList className="mb-6 grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
+            <TabsTrigger value="pending" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Pending ({isLoading ? "..." : reports.length})</span>
+              <span className="xs:hidden">Pending ({isLoading ? "..." : reports.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="all" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">All Reports</span>
+              <span className="xs:hidden">All</span>
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="pending" className="space-y-4">

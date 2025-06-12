@@ -93,18 +93,21 @@ export default async function Home({
       </div>
 
       <Tabs defaultValue="categories" className="mb-8">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
-          <TabsTrigger value="categories" className="flex items-center gap-2">
-            <TagIcon className="h-4 w-4" />
-            Categories
+        <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6 h-auto">
+          <TabsTrigger value="categories" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2">
+            <TagIcon className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Categories</span>
+            <span className="xs:hidden">Cat.</span>
           </TabsTrigger>
-          <TabsTrigger value="recent" className="flex items-center gap-2">
-            <Clock className="h-4 w-4" />
-            Recent Posts
+          <TabsTrigger value="recent" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2">
+            <Clock className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Recent Posts</span>
+            <span className="xs:hidden">Recent</span>
           </TabsTrigger>
-          <TabsTrigger value="popular" className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4" />
-            Popular
+          <TabsTrigger value="popular" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm py-2">
+            <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden xs:inline">Popular</span>
+            <span className="xs:hidden">Pop.</span>
           </TabsTrigger>
         </TabsList>
         <TabsContent value="categories">

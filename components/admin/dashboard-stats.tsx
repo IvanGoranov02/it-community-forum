@@ -12,9 +12,15 @@ interface DashboardStatsProps {
 export function DashboardStats({ stats }: DashboardStatsProps) {
   return (
     <Tabs defaultValue="overview" className="space-y-4">
-      <TabsList>
-        <TabsTrigger value="overview">Общ преглед</TabsTrigger>
-        <TabsTrigger value="today">Днес</TabsTrigger>
+      <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 h-auto">
+        <TabsTrigger value="overview" className="text-xs sm:text-sm py-2">
+          <span className="hidden xs:inline">Overview</span>
+          <span className="xs:hidden">Overview</span>
+        </TabsTrigger>
+        <TabsTrigger value="today" className="text-xs sm:text-sm py-2">
+          <span className="hidden xs:inline">Today</span>
+          <span className="xs:hidden">Today</span>
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="overview" className="space-y-4">

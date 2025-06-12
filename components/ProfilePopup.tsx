@@ -65,7 +65,22 @@ export function ProfilePopup({ username, children, open, setOpen }: ProfilePopup
               <div className="text-muted-foreground">@{profile.username}</div>
               <div className="mt-1 text-sm text-muted-foreground">Joined {formatDate(profile.created_at)}</div>
               <div className="mt-2">
-                <Badge variant="outline" className="mr-2">{profile.role}</Badge>
+                <Badge 
+                  variant="outline" 
+                  className={
+                    profile.role === "admin" || profile.email === "i.goranov02@gmail.com"
+                      ? "mr-2 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                      : profile.role === "moderator"
+                      ? "mr-2 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                      : "mr-2 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                  }
+                >
+                  {profile.role === "admin" || profile.email === "i.goranov02@gmail.com"
+                    ? "Admin"
+                    : profile.role === "moderator"
+                    ? "Moderator"
+                    : "Member"}
+                </Badge>
                 <span className="text-sm">{profile.reputation} reputation</span>
               </div>
             </div>

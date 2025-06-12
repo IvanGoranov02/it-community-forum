@@ -203,11 +203,6 @@ export default async function PostPage({ params }: PostPageProps) {
             </div>
           )}
 
-          <h2 className="text-xl font-semibold mt-6 mb-4 flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-primary" />
-            Replies ({comments.length})
-          </h2>
-
           <PostPageClient 
             post={post}
             comments={comments}

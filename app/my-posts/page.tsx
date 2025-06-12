@@ -80,10 +80,19 @@ export default async function MyPostsPage() {
         </div>
 
         <Tabs defaultValue="all" className="mb-8">
-          <TabsList className="mb-4">
-            <TabsTrigger value="all">All Posts ({postsWithVotes.length})</TabsTrigger>
-            <TabsTrigger value="active">Active ({postsWithVotes.filter((p) => !p.is_archived).length})</TabsTrigger>
-            <TabsTrigger value="archived">Archived ({postsWithVotes.filter((p) => p.is_archived).length})</TabsTrigger>
+          <TabsList className="mb-4 grid w-full grid-cols-1 sm:grid-cols-3 h-auto">
+            <TabsTrigger value="all" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">All Posts ({postsWithVotes.length})</span>
+              <span className="xs:hidden">All ({postsWithVotes.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="active" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Active ({postsWithVotes.filter((p) => !p.is_archived).length})</span>
+              <span className="xs:hidden">Active ({postsWithVotes.filter((p) => !p.is_archived).length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="archived" className="text-xs sm:text-sm py-2">
+              <span className="hidden xs:inline">Archived ({postsWithVotes.filter((p) => p.is_archived).length})</span>
+              <span className="xs:hidden">Arch. ({postsWithVotes.filter((p) => p.is_archived).length})</span>
+            </TabsTrigger>
           </TabsList>
 
           {["all", "active", "archived"].map((tab) => (
