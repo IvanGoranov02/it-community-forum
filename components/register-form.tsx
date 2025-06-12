@@ -58,107 +58,60 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
     const tokenToUse = captchaToken
     setCaptchaToken("")
 
-    // Generate username from email if not provided
-    const finalUsername =
-      username || email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") + Math.floor(Math.random() * 1000)
-
     try {
-      const supabase = createBrowserClient()
-
-      // Check if username is already taken
-      const { data: existingUser, error: checkError } = await supabase
-        .from("profiles")
-        .select("id")
-        .eq("username", finalUsername)
-        .maybeSingle()
-
-      if (checkError) {
-        setErrorMessage("Error checking username availability")
-        setDebugInfo({ checkError })
-        if (captchaRef.current) captchaRef.current.reset()
-        setCaptchaToken("")
-        stopLoading()
-        return
-      }
-
-      if (existingUser) {
-        setErrorMessage("Username is already taken. Please choose another one.")
-        if (captchaRef.current) captchaRef.current.reset()
-        setCaptchaToken("")
-        stopLoading()
-        return
-      }
-
-      // Get the site URL from environment variable or use the current origin
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-
-      // Create the user with the correct redirect URL and captcha token
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-          },
-          emailRedirectTo: `${siteUrl}/auth/callback`,
-          captchaToken: tokenToUse,
+      console.log("Submitting registration form with captcha token:", tokenToUse.substring(0, 10) + '...')
+      
+      // Use the API route instead of direct Supabase client
+      const response = await fetch('/api/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-      })
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+          username,
+          captchaToken: tokenToUse,
+        }),
+      });
 
-      if (authError) {
-        console.error("Auth error during registration:", authError)
-        setErrorMessage(authError.message || "Failed to create user")
-        setDebugInfo({ authError })
-        if (captchaRef.current) captchaRef.current.reset()
-        stopLoading()
-        return
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error("Registration error:", data.error, data.details);
+        setErrorMessage(data.error || "Registration failed");
+        setDebugInfo({ apiError: data });
+        
+        // Reset captcha for new attempt
+        if (captchaRef.current) captchaRef.current.reset();
+        stopLoading();
+        return;
       }
 
-      if (!authData.user) {
-        setErrorMessage("Failed to create user")
-        if (captchaRef.current) captchaRef.current.reset()
-        stopLoading()
-        return
-      }
-
-      // Create the profile
-      const { error: profileError } = await supabase.from("profiles").insert({
-        id: authData.user.id,
-        username: finalUsername,
-        full_name: name,
-        role: "member",
-        reputation: 0,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      })
-
-      if (profileError) {
-        console.error("Profile error during registration:", profileError)
-        setErrorMessage(profileError.message)
-        setDebugInfo({ profileError })
-        if (captchaRef.current) captchaRef.current.reset()
-        stopLoading()
-        return
-      }
-
+      // Success
+      console.log("Registration successful");
+      
+      // Mark token as successfully used
+      if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse);
+      
       // Show success message
       toast({
         title: "Registration successful",
         description: "Please check your email to confirm your account.",
-      })
-
-      // Mark token as successfully used
-      if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse)
-
-      // Redirect to login page and stop loading
-      router.push("/login?message=registration-success")
-      stopLoading()
+      });
+      
+      // Redirect to login page
+      router.push("/login?message=registration-success");
     } catch (error) {
-      console.error("Unexpected error during registration:", error)
-      setErrorMessage("An unexpected error occurred during registration")
-      setDebugInfo({ unexpectedError: error })
-      if (captchaRef.current) captchaRef.current.reset()
-      stopLoading()
+      console.error("Unexpected error during registration:", error);
+      setErrorMessage("An unexpected error occurred during registration");
+      setDebugInfo({ unexpectedError: error });
+      
+      // Reset captcha on unexpected error
+      if (captchaRef.current) captchaRef.current.reset();
+    } finally {
+      stopLoading();
     }
   }
 
