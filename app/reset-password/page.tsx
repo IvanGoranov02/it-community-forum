@@ -72,25 +72,6 @@ export default function ResetPasswordPage() {
     }
   }, [router]);
 
-  // Set Supabase session if access_token is present
-  useEffect(() => {
-    if (accessToken && type === "recovery") {
-      const supabase = createBrowserClient();
-      
-      // If we have both tokens, set a full session
-      if (refreshToken) {
-        supabase.auth.setSession({
-          access_token: accessToken,
-          refresh_token: refreshToken,
-        });
-      } else {
-        // If we only have access_token (which is common for password recovery),
-        // we can still use it for the updateUser call
-        console.log("Setting up with access token only (no refresh token)");
-      }
-    }
-  }, [accessToken, refreshToken, type]);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
@@ -109,11 +90,7 @@ export default function ResetPasswordPage() {
 
     try {
       const supabase = createBrowserClient()
-      
-      // If we have an access token, use it directly
-      let updateUserOpts = { password };
-      
-      // Make the update user call
+      let updateUserOpts = { password }
       const { error } = await supabase.auth.updateUser(updateUserOpts)
 
       if (error) {
@@ -124,13 +101,18 @@ export default function ResetPasswordPage() {
           variant: "destructive",
         })
       } else {
+        // Set session only after password is updated
+        if (accessToken && refreshToken) {
+          await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          })
+        }
         setIsSubmitted(true)
         toast({
           title: "Password updated",
           description: "Your password has been successfully updated.",
         })
-
-        // Redirect to login after a short delay
         setTimeout(() => {
           router.push("/login")
         }, 2000)
