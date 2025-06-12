@@ -93,7 +93,6 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         return
       }
 
-      // Create the profile
       const { error: profileError } = await supabase.from("profiles").insert({
         id: authData.user.id,
         username: finalUsername,
