@@ -139,4 +139,4 @@ pnpm lint
 - [Supabase](https://supabase.com/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [Radix UI](https://www.radix-ui.com/)
-- [Shadcn/ui](https://ui.shadcn.com/)
+- [Shadcn/ui](https://ui.shadcn.com/)# Trigger deployment
