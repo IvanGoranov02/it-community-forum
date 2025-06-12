@@ -27,8 +27,7 @@ export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
   useImperativeHandle(ref, () => ({
     reset: () => {
       if (captchaRef.current) {
-        // @ts-ignore
-        captchaRef.current.resetCaptcha();
+        captchaRef.current.reset();
       }
     }
   }))
