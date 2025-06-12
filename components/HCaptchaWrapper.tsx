@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
 import HCaptcha from 'react-hcaptcha'
 import { NoStrictMode } from "@/components/NoStrictMode"
 
@@ -17,9 +17,21 @@ interface HCaptchaWrapperProps {
   onExpire?: () => void
 }
 
-export function HCaptchaWrapper({ sitekey, onVerify, onExpire }: HCaptchaWrapperProps) {
+export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
+  { sitekey, onVerify, onExpire }: HCaptchaWrapperProps,
+  ref
+) {
   const [ready, setReady] = useState(false)
   const captchaRef = useRef<HCaptcha>(null)
+
+  useImperativeHandle(ref, () => ({
+    reset: () => {
+      if (captchaRef.current) {
+        // @ts-ignore
+        captchaRef.current.resetCaptcha();
+      }
+    }
+  }))
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -62,4 +74,4 @@ export function HCaptchaWrapper({ sitekey, onVerify, onExpire }: HCaptchaWrapper
       </div>
     </NoStrictMode>
   )
-} 
+}) 

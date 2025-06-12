@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
@@ -28,6 +28,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
   const [password, setPassword] = useState("")
   const [debugInfo, setDebugInfo] = useState<any>(null)
   const [captchaToken, setCaptchaToken] = useState("")
+  const captchaRef = useRef<any>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,12 +39,16 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
     if (!email || !name || !password) {
       setErrorMessage("All fields are required")
       stopLoading()
+      if (captchaRef.current) captchaRef.current.reset()
+      setCaptchaToken("")
       return
     }
 
     if (!captchaToken) {
       setErrorMessage("Please complete the captcha verification")
       stopLoading()
+      if (captchaRef.current) captchaRef.current.reset()
+      setCaptchaToken("")
       return
     }
 
@@ -67,12 +72,16 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         setErrorMessage("Error checking username availability")
         setDebugInfo({ checkError })
         stopLoading()
+        if (captchaRef.current) captchaRef.current.reset()
+        setCaptchaToken("")
         return
       }
 
       if (existingUser) {
         setErrorMessage("Username is already taken. Please choose another one.")
         stopLoading()
+        if (captchaRef.current) captchaRef.current.reset()
+        setCaptchaToken("")
         return
       }
 
@@ -97,12 +106,16 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         setErrorMessage(authError.message || "Failed to create user")
         setDebugInfo({ authError })
         stopLoading()
+        if (captchaRef.current) captchaRef.current.reset()
+        setCaptchaToken("")
         return
       }
 
       if (!authData.user) {
         setErrorMessage("Failed to create user")
         stopLoading()
+        if (captchaRef.current) captchaRef.current.reset()
+        setCaptchaToken("")
         return
       }
 
@@ -122,6 +135,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         setErrorMessage(profileError.message)
         setDebugInfo({ profileError })
         stopLoading()
+        if (captchaRef.current) captchaRef.current.reset()
+        setCaptchaToken("")
         return
       }
 
@@ -139,6 +154,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       setErrorMessage("An unexpected error occurred during registration")
       setDebugInfo({ unexpectedError: error })
       stopLoading()
+      if (captchaRef.current) captchaRef.current.reset()
+      setCaptchaToken("")
     }
   }
 
@@ -245,6 +262,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
 
           <div className="flex justify-center my-2">
             <HCaptchaWrapper
+              ref={captchaRef}
               sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"
               onVerify={setCaptchaToken}
               onExpire={() => setCaptchaToken("")}
