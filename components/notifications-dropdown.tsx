@@ -53,6 +53,7 @@ export function NotificationsDropdown({
 
   useEffect(() => {
     const supabase = createBrowserClient()
+    let isMounted = true
     console.log("Setting up realtime subscription for user:", userId)
 
     // Test if Realtime is connected
@@ -75,9 +76,11 @@ export function NotificationsDropdown({
         },
         (payload) => {
           console.log("Received new notification:", payload)
-          const newNotification = payload.new as Notification
-          setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
-          setUnreadCount((prev) => prev + 1)
+          if (isMounted) {
+            const newNotification = payload.new as Notification
+            setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
+            setUnreadCount((prev) => prev + 1)
+          }
         },
       )
       .subscribe((status) => {
@@ -88,12 +91,16 @@ export function NotificationsDropdown({
 
     return () => {
       console.log("Cleaning up realtime subscription")
+      isMounted = false
       supabase.removeChannel(channel)
     }
   }, [userId])
 
   const handleNotificationClick = async (notification: Notification) => {
     try {
+      // Prevent multiple clicks
+      if (isOpen === false) return
+      
       if (!notification.is_read) {
         await markNotificationAsRead(notification.id)
         setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)))
@@ -101,33 +108,17 @@ export function NotificationsDropdown({
       }
 
       if (notification.link) {
-        // Проверяваме дали линкът е валиден
-        const supabase = createBrowserClient()
-
-        // Извличаме slug от линка
-        const match = notification.link.match(/\/post\/([^#]+)/)
-        if (match && match[1]) {
-          const slug = match[1]
-
-          // Проверяваме дали постът съществува
-          const { data, error } = await supabase.from("posts").select("id").eq("slug", slug).maybeSingle()
-
-          if (error || !data) {
-            toast({
-              title: "Грешка",
-              description: "Постът не съществува или е изтрит",
-              variant: "destructive",
-            })
-            return
-          }
-        }
-
+        // Close dropdown first to prevent state issues
+        setIsOpen(false)
+        
+        // Simple navigation without complex validation
         router.push(notification.link)
+      } else {
+        setIsOpen(false)
       }
-
-      setIsOpen(false)
     } catch (error) {
       console.error("Error handling notification click:", error)
+      setIsOpen(false)
       toast({
         title: "Грешка",
         description: "Възникна проблем при обработката на известието",

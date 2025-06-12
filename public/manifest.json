@@ -6,67 +6,11 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0070f3",
-  "orientation": "portrait-primary",
   "icons": [
     {
       "src": "/favicon.ico",
       "sizes": "any",
       "type": "image/x-icon"
-    },
-    {
-      "src": "/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
     }
-  ],
-  "screenshots": [
-    {
-      "src": "/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "IT-Community Forum - Desktop View"
-    },
-    {
-      "src": "/screenshot-narrow.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "IT-Community Forum - Mobile View"
-    }
-  ],
-  "shortcuts": [
-    {
-      "name": "New Post",
-      "short_name": "New Post",
-      "description": "Create a new forum post",
-      "url": "/new-post",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    },
-    {
-      "name": "Browse Categories",
-      "short_name": "Categories",
-      "description": "Browse forum categories",
-      "url": "/",
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ]
-    }
-  ],
-  "categories": ["productivity", "social", "education"],
-  "lang": "en",
-  "dir": "ltr"
+  ]
 } 
