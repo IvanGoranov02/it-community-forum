@@ -26,7 +26,7 @@ export function OAuthAccountsManager() {
       
       if (error) {
         console.error("Error loading identities:", error)
-        toast.error("Неуспешно зареждане на свързаните акаунти")
+        toast.error("Failed to load linked accounts")
         return
       }
 
@@ -40,7 +40,7 @@ export function OAuthAccountsManager() {
 
   const linkOAuthAccount = async (provider: 'google' | 'github') => {
     // Show informative message about potential issues
-    toast.info(`Опитваме се да свържем ${provider === 'google' ? 'Google' : 'GitHub'} акаунта ви. Ако имате съществуващ акаунт със същия имейл, процесът може да не работи правилно.`, {
+    toast.info(`Attempting to link your ${provider === 'google' ? 'Google' : 'GitHub'} account. If you have an existing account with the same email, the process may not work properly.`, {
       autoClose: 8000
     })
 
@@ -61,23 +61,23 @@ export function OAuthAccountsManager() {
         
         // More specific error messages
         if (error.message.includes('Multiple accounts')) {
-          toast.error(`Не можем да свържем ${provider === 'google' ? 'Google' : 'GitHub'} акаунта, защото вече имате акаунт с този имейл. За сигурност, Supabase не позволява автоматично свързване на акаунти.`)
+          toast.error(`Cannot link ${provider === 'google' ? 'Google' : 'GitHub'} account because you already have an account with this email. For security reasons, Supabase does not allow automatic account linking.`)
         } else if (error.message.includes('email')) {
-          toast.error(`Проблем с имейл адреса при свързване на ${provider === 'google' ? 'Google' : 'GitHub'} акаунта.`)
+          toast.error(`Email address issue when linking ${provider === 'google' ? 'Google' : 'GitHub'} account.`)
         } else {
-          toast.error(`Неуспешно свързване на ${provider === 'google' ? 'Google' : 'GitHub'} акаунта: ${error.message}`)
+          toast.error(`Failed to link ${provider === 'google' ? 'Google' : 'GitHub'} account: ${error.message}`)
         }
         return
       }
 
       if (data.url) {
-        toast.success(`Пренасочваме ви към ${provider === 'google' ? 'Google' : 'GitHub'} за потвърждение...`)
+        toast.success(`Redirecting you to ${provider === 'google' ? 'Google' : 'GitHub'} for confirmation...`)
         // Redirect to OAuth provider
         window.location.href = data.url
       }
     } catch (error) {
       console.error(`Error linking ${provider}:`, error)
-      toast.error(`Неуспешно свързване на ${provider === 'google' ? 'Google' : 'GitHub'} акаунта`)
+      toast.error(`Failed to link ${provider === 'google' ? 'Google' : 'GitHub'} account`)
     } finally {
       setLinkingProvider(null)
     }
@@ -85,7 +85,7 @@ export function OAuthAccountsManager() {
 
   const unlinkAccount = async (identity: UserIdentity) => {
     if (identities.length <= 1) {
-      toast.warning("Трябва да имате поне един метод за влизане в акаунта")
+      toast.warning("You must have at least one authentication method")
       return
     }
 
@@ -95,17 +95,17 @@ export function OAuthAccountsManager() {
 
       if (error) {
         console.error("Error unlinking identity:", error)
-        toast.error(`Неуспешно премахване на ${identity.provider} акаунта`)
+        toast.error(`Failed to unlink ${identity.provider} account`)
         return
       }
 
-      toast.success(`${identity.provider} акаунтът е премахнат успешно`)
+      toast.success(`${identity.provider} account has been unlinked successfully`)
 
       // Reload identities
       loadIdentities()
     } catch (error) {
       console.error("Error unlinking identity:", error)
-      toast.error("Неуспешно премахване на акаунта")
+      toast.error("Failed to unlink account")
     }
   }
 
@@ -213,9 +213,9 @@ export function OAuthAccountsManager() {
           <Alert>
             <Info className="h-4 w-4" />
             <AlertDescription>
-              <strong>Важно:</strong> Ако вече имате акаунт със същия имейл адрес в друг OAuth провайдър, 
-              свързването може да не работи поради сигурностни ограничения на Supabase. 
-              В този случай ще получите съобщение за грешка "Multiple accounts detected".
+              <strong>Important:</strong> If you already have an account with the same email address in another OAuth provider, 
+              linking may not work due to security restrictions of Supabase. 
+              In this case, you will receive an error message "Multiple accounts detected".
             </AlertDescription>
           </Alert>
           

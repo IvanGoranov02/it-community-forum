@@ -17,7 +17,7 @@ export function AuthHashHandler() {
     
     // Instead of trying to automatically link (which requires manual linking to be enabled),
     // we'll provide better user guidance
-    toast.error("Акаунтът вече съществува. Моля, влезте първо с имейл и парола, след което можете да свържете OAuth акаунтите си в настройките на профила.")
+    toast.error("Account already exists. Please sign in with your email and password first, then you can link your OAuth accounts in your profile settings.")
     
     // Clear the hash fragment and redirect to login with a helpful message
     if (window.history.replaceState) {
@@ -90,7 +90,7 @@ export function AuthHashHandler() {
               }
             }
             
-            toast.error(`OAuth грешка: ${userFriendlyMessage}`)
+            toast.error(`OAuth error: ${userFriendlyMessage}`)
             
             // Clear the hash fragment and redirect to login
             if (window.history.replaceState) {
@@ -130,7 +130,7 @@ export function AuthHashHandler() {
             
             if (error) {
               console.error("Error setting session:", error)
-              toast.error("Грешка при автентикация. Моля, опитайте отново.")
+              toast.error("Authentication error. Please try again.")
               setIsProcessing(false)
               return
             }
@@ -215,7 +215,7 @@ export function AuthHashHandler() {
               }
 
               // Show success message
-              toast.success("Добре дошли! Успешно влязохте с OAuth.")
+              toast.success("Welcome! You have successfully logged in with OAuth.")
               
               // Clear the hash fragment from the URL
               if (window.history.replaceState) {
@@ -234,7 +234,7 @@ export function AuthHashHandler() {
           }
         } catch (error) {
           console.error("Error processing auth hash:", error)
-          toast.error("Грешка при автентикация. Моля, опитайте отново.")
+          toast.error("Authentication error. Please try again.")
           setIsProcessing(false)
         }
       }
