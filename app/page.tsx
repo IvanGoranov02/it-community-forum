@@ -7,7 +7,7 @@ import { ForumPost } from "@/components/forum-post"
 import { SearchBar } from "@/components/search-bar"
 import { UserMenu } from "@/components/user-menu"
 import { NotificationsDropdown } from "@/components/notifications-dropdown"
-import { TagIcon, Bug, LogIn, PlusCircle, TrendingUp, Clock } from "lucide-react"
+import { TagIcon, Bug, LogIn, PlusCircle, TrendingUp, Clock, Info } from "lucide-react"
 import { getUser } from "@/app/actions/auth"
 import { getCategories, getRecentPosts, getPopularPosts } from "@/lib/api"
 import { getUserNotifications, getUnreadNotificationsCount } from "@/app/actions/notifications"
@@ -74,6 +74,12 @@ export default async function Home({
           <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
             <TagIcon className="h-4 w-4" />
             Browse Tags
+          </Button>
+        </Link>
+        <Link href="/about">
+          <Button variant="outline" className="flex items-center gap-2 hover:bg-primary/10">
+            <Info className="h-4 w-4" />
+            About
           </Button>
         </Link>
         {/* <Link href="/simple-login">

@@ -3,7 +3,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Github, Instagram, Linkedin, Mail, Globe } from "lucide-react"
+import { Github, Instagram, Linkedin, Mail, Globe, Home, ChevronLeft } from "lucide-react"
 
 export const metadata: Metadata = {
   title: "About | IT Community Forum",
@@ -13,6 +13,15 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8">
+      <div className="mb-6">
+        <Link href="/">
+          <Button variant="ghost" className="flex items-center gap-2 pl-0 hover:bg-transparent hover:text-primary">
+            <ChevronLeft className="h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+      
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
         {/* About the Creator */}
         <div className="lg:col-span-8">
