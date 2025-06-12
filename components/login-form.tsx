@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
+import { handleAuthError } from "@/utils/errorHandler"
 
 const HCaptchaWrapper = dynamic(() => import("@/components/HCaptchaWrapper").then(mod => mod.HCaptchaWrapper), { ssr: false })
 
@@ -50,103 +51,64 @@ export function LoginForm({
       return
     }
 
-    console.log('DEBUG: captchaToken before login:', captchaToken)
+    // Store and clear token immediately
+    const tokenToUse = captchaToken
+    setCaptchaToken("")
 
     try {
       const supabase = createBrowserClient()
 
-      // Try client-side login with captcha token
+      // Only make ONE auth request
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
         options: {
-          captchaToken,
+          captchaToken: tokenToUse,
         }
       })
 
       if (authError) {
         console.error("Login error:", authError)
-
-        // Special handling for unconfirmed emails
         if (authError.message.includes("Email not confirmed")) {
-          setErrorMessage("Please confirm your email before logging in. Check your inbox for a confirmation link.")
-
-          // Get the site URL from environment variable or use the current origin
-          const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
-
-          // Offer to resend confirmation email
+          setErrorMessage("Please confirm your email before logging in.")
+          // Optionally resend confirmation
           const { error: resendError } = await supabase.auth.resend({
             type: "signup",
             email,
             options: {
-              emailRedirectTo: `${siteUrl}/auth/callback`,
+              emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
             },
           })
-
           if (!resendError) {
             toast({
               title: "Confirmation email resent",
-              description: "Please check your inbox for the confirmation link.",
+              description: "Please check your inbox.",
             })
           }
         } else {
           setErrorMessage(authError.message)
         }
-
-        setDebugInfo({ clientError: authError })
-        stopLoading()
+        // Reset captcha for new attempt
+        if (captchaRef.current) captchaRef.current.reset()
         return
       }
 
       if (authData.session) {
-        // Store the session in localStorage
-        localStorage.setItem("supabase-auth", JSON.stringify(authData.session))
-
-        // Mark captcha token as used
-        if (captchaRef.current) captchaRef.current.markTokenAsUsed(captchaToken)
-
-        // Also try to set the cookie via API for server-side auth
-        try {
-          const response = await fetch("/api/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email, password, captchaToken }),
-          })
-
-          const data = await response.json()
-
-          if (!response.ok) {
-            console.warn("Server-side login failed, but client auth succeeded:", data)
-            // We can continue since client-side auth worked
-          }
-        } catch (e) {
-          // Ignore errors here, we already have client-side auth
-          console.warn("Failed to set server-side cookie, but client auth succeeded", e)
-        }
-
+        // Mark token as successfully used
+        if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse)
         toast({
           title: "Login successful",
           description: "Welcome back!",
         })
-
-        // Redirect to the specified URL
         router.push(redirectUrl)
         router.refresh()
       }
     } catch (error) {
-      console.error("Login error:", error)
+      console.error("Unexpected login error:", error)
       setErrorMessage("An unexpected error occurred. Please try again.")
-      setDebugInfo({ unexpectedError: error })
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
+      // Reset captcha on unexpected error
       if (captchaRef.current) captchaRef.current.reset()
-      setCaptchaToken("")
+    } finally {
       stopLoading()
     }
   }

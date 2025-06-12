@@ -49,6 +49,12 @@ export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
     }
   }, [])
 
+  const handleExpire = useCallback(() => {
+    console.log('Captcha expired, clearing token');
+    setCurrentToken("");
+    if (onExpire) onExpire();
+  }, [onExpire])
+
   useImperativeHandle(ref, () => ({
     reset: resetCaptcha,
     markTokenAsUsed,
@@ -88,7 +94,7 @@ export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
           <HCaptcha
             sitekey={sitekey}
             onVerify={handleVerify}
-            onExpire={onExpire || (() => onVerify(""))}
+            onExpire={handleExpire}
             ref={captchaRef}
           />
         )}

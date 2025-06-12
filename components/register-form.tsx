@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
+import { handleAuthError } from "@/utils/errorHandler"
 
 const HCaptchaWrapper = dynamic(() => import("@/components/HCaptchaWrapper").then(mod => mod.HCaptchaWrapper), { ssr: false })
 
