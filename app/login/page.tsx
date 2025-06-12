@@ -11,12 +11,13 @@ export const metadata: Metadata = {
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const user = await getUser()
-  const redirectUrl = searchParams.redirect ? String(searchParams.redirect) : "/"
-  const message = searchParams.message ? String(searchParams.message) : undefined
-  const error = searchParams.error ? String(searchParams.error) : undefined
+  const params = await searchParams
+  const redirectUrl = params.redirect ? String(params.redirect) : "/"
+  const message = params.message ? String(params.message) : undefined
+  const error = params.error ? String(params.error) : undefined
 
   if (user) {
     redirect(redirectUrl)

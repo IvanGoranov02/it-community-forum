@@ -33,13 +33,14 @@ export const metadata = {
 export default async function Home({
   searchParams,
 }: {
-  searchParams: { [key: string]: string | string[] | undefined }
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }) {
   const user: any = await getUser()
   const categories: any = await getCategories()
   const recentPosts: any = await getRecentPosts(6)
   const popularPosts: any = await getPopularPosts(5)
-  const message = searchParams.message ? String(searchParams.message) : undefined
+  const params = await searchParams
+  const message = params.message ? String(params.message) : undefined
 
   // Get notifications if user is logged in
   const notifications: any = user ? await getUserNotifications(10) : []
