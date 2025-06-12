@@ -3,12 +3,11 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase"
-import { useToast } from "@/hooks/use-toast"
+import { toast } from 'react-toastify'
 import { Loader2 } from "lucide-react"
 
 export function AuthHashHandler() {
   const router = useRouter()
-  const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
   const [hasProcessed, setHasProcessed] = useState(false)
 
@@ -18,11 +17,7 @@ export function AuthHashHandler() {
     
     // Instead of trying to automatically link (which requires manual linking to be enabled),
     // we'll provide better user guidance
-    toast({
-      title: "Account Already Exists",
-      description: "You already have an account with this email. Please sign in with your email and password first, then you can link your OAuth accounts in your profile settings.",
-      variant: "destructive"
-    })
+    toast.error("Акаунтът вече съществува. Моля, влезте първо с имейл и парола, след което можете да свържете OAuth акаунтите си в настройките на профила.")
     
     // Clear the hash fragment and redirect to login with a helpful message
     if (window.history.replaceState) {
@@ -82,10 +77,7 @@ export function AuthHashHandler() {
             
             if (shouldTryAutoLink) {
               // Show a different message for auto-linking attempt
-              toast({
-                title: "Account Linking",
-                description: userFriendlyMessage,
-              })
+              toast.info(userFriendlyMessage)
               
               // Try to handle the account linking automatically
               try {
@@ -98,11 +90,7 @@ export function AuthHashHandler() {
               }
             }
             
-            toast({
-              title: "OAuth Login Error",
-              description: userFriendlyMessage,
-              variant: "destructive"
-            })
+            toast.error(`OAuth грешка: ${userFriendlyMessage}`)
             
             // Clear the hash fragment and redirect to login
             if (window.history.replaceState) {
@@ -142,11 +130,7 @@ export function AuthHashHandler() {
             
             if (error) {
               console.error("Error setting session:", error)
-              toast({
-                title: "Authentication error",
-                description: "There was a problem processing your authentication. Please try again.",
-                variant: "destructive"
-              })
+              toast.error("Грешка при автентикация. Моля, опитайте отново.")
               setIsProcessing(false)
               return
             }
@@ -231,10 +215,7 @@ export function AuthHashHandler() {
               }
 
               // Show success message
-              toast({
-                title: "Login successful",
-                description: "Welcome! You have successfully logged in with OAuth.",
-              })
+              toast.success("Добре дошли! Успешно влязохте с OAuth.")
               
               // Clear the hash fragment from the URL
               if (window.history.replaceState) {
@@ -253,11 +234,7 @@ export function AuthHashHandler() {
           }
         } catch (error) {
           console.error("Error processing auth hash:", error)
-          toast({
-            title: "Authentication error",
-            description: "There was a problem processing your authentication. Please try again.",
-            variant: "destructive"
-          })
+          toast.error("Грешка при автентикация. Моля, опитайте отново.")
           setIsProcessing(false)
         }
       }

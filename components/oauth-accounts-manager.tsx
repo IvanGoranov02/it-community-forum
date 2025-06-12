@@ -4,16 +4,16 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { useToast } from "@/hooks/use-toast"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { toast } from 'react-toastify'
 import { createBrowserClient } from "@/lib/supabase"
-import { Loader2, Link as LinkIcon, Unlink } from "lucide-react"
+import { Loader2, Link as LinkIcon, Unlink, Info } from "lucide-react"
 import type { UserIdentity } from "@supabase/supabase-js"
 
 export function OAuthAccountsManager() {
   const [identities, setIdentities] = useState<UserIdentity[]>([])
   const [loading, setLoading] = useState(true)
   const [linkingProvider, setLinkingProvider] = useState<string | null>(null)
-  const { toast } = useToast()
 
   useEffect(() => {
     loadIdentities()
@@ -26,11 +26,7 @@ export function OAuthAccountsManager() {
       
       if (error) {
         console.error("Error loading identities:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load linked accounts",
-          variant: "destructive"
-        })
+        toast.error("Неуспешно зареждане на свързаните акаунти")
         return
       }
 
@@ -43,6 +39,11 @@ export function OAuthAccountsManager() {
   }
 
   const linkOAuthAccount = async (provider: 'google' | 'github') => {
+    // Show informative message about potential issues
+    toast.info(`Опитваме се да свържем ${provider === 'google' ? 'Google' : 'GitHub'} акаунта ви. Ако имате съществуващ акаунт със същия имейл, процесът може да не работи правилно.`, {
+      autoClose: 8000
+    })
+
     setLinkingProvider(provider)
     try {
       const supabase = createBrowserClient()
@@ -57,25 +58,26 @@ export function OAuthAccountsManager() {
 
       if (error) {
         console.error(`Error linking ${provider}:`, error)
-        toast({
-          title: "Error",
-          description: `Failed to link ${provider} account: ${error.message}`,
-          variant: "destructive"
-        })
+        
+        // More specific error messages
+        if (error.message.includes('Multiple accounts')) {
+          toast.error(`Не можем да свържем ${provider === 'google' ? 'Google' : 'GitHub'} акаунта, защото вече имате акаунт с този имейл. За сигурност, Supabase не позволява автоматично свързване на акаунти.`)
+        } else if (error.message.includes('email')) {
+          toast.error(`Проблем с имейл адреса при свързване на ${provider === 'google' ? 'Google' : 'GitHub'} акаунта.`)
+        } else {
+          toast.error(`Неуспешно свързване на ${provider === 'google' ? 'Google' : 'GitHub'} акаунта: ${error.message}`)
+        }
         return
       }
 
       if (data.url) {
+        toast.success(`Пренасочваме ви към ${provider === 'google' ? 'Google' : 'GitHub'} за потвърждение...`)
         // Redirect to OAuth provider
         window.location.href = data.url
       }
     } catch (error) {
       console.error(`Error linking ${provider}:`, error)
-      toast({
-        title: "Error",
-        description: `Failed to link ${provider} account`,
-        variant: "destructive"
-      })
+      toast.error(`Неуспешно свързване на ${provider === 'google' ? 'Google' : 'GitHub'} акаунта`)
     } finally {
       setLinkingProvider(null)
     }
@@ -83,11 +85,7 @@ export function OAuthAccountsManager() {
 
   const unlinkAccount = async (identity: UserIdentity) => {
     if (identities.length <= 1) {
-      toast({
-        title: "Cannot unlink",
-        description: "You must have at least one authentication method",
-        variant: "destructive"
-      })
+      toast.warning("Трябва да имате поне един метод за влизане в акаунта")
       return
     }
 
@@ -97,28 +95,17 @@ export function OAuthAccountsManager() {
 
       if (error) {
         console.error("Error unlinking identity:", error)
-        toast({
-          title: "Error",
-          description: `Failed to unlink ${identity.provider} account`,
-          variant: "destructive"
-        })
+        toast.error(`Неуспешно премахване на ${identity.provider} акаунта`)
         return
       }
 
-      toast({
-        title: "Account unlinked",
-        description: `${identity.provider} account has been unlinked`
-      })
+      toast.success(`${identity.provider} акаунтът е премахнат успешно`)
 
       // Reload identities
       loadIdentities()
     } catch (error) {
       console.error("Error unlinking identity:", error)
-      toast({
-        title: "Error",
-        description: "Failed to unlink account",
-        variant: "destructive"
-      })
+      toast.error("Неуспешно премахване на акаунта")
     }
   }
 
@@ -221,6 +208,17 @@ export function OAuthAccountsManager() {
         {/* Available providers to link */}
         <div className="space-y-3">
           <h4 className="text-sm font-medium">Available Accounts</h4>
+          
+          {/* Information alert about linking limitations */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Важно:</strong> Ако вече имате акаунт със същия имейл адрес в друг OAuth провайдър, 
+              свързването може да не работи поради сигурностни ограничения на Supabase. 
+              В този случай ще получите съобщение за грешка "Multiple accounts detected".
+            </AlertDescription>
+          </Alert>
+          
           <div className="grid grid-cols-1 gap-3">
             {!isProviderLinked('google') && (
               <div className="flex items-center justify-between p-3 border rounded-lg">
