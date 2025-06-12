@@ -143,9 +143,10 @@ export function AuthHashHandler() {
               }
               
               console.log("Redirecting to home page...")
-              // Redirect to home page with success message
-              router.push("/?message=oauth-success")
-              router.refresh()
+              // Use window.location.href for more reliable redirection
+              setTimeout(() => {
+                window.location.href = "/?message=oauth-success"
+              }, 1000) // Small delay to ensure everything is processed
             }
           } else {
             console.log("AuthHashHandler: No valid OAuth tokens found in hash")

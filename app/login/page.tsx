@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 import { LoginForm } from "@/components/login-form"
 import { AuthHashHandler } from "@/components/auth-hash-handler"
 import { getUser } from "@/app/actions/auth"
+import { LoginPageClient } from "@/components/login-page-client"
 
 export const metadata: Metadata = {
   title: "Login | IT Community Forum",
@@ -20,14 +21,15 @@ export default async function LoginPage({
   const message = params.message ? String(params.message) : undefined
   const error = params.error ? String(params.error) : undefined
 
-  if (user) {
-    redirect(redirectUrl)
-  }
-
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <AuthHashHandler />
-      <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
+      <LoginPageClient 
+        user={user} 
+        redirectUrl={redirectUrl} 
+        message={message} 
+        error={error} 
+      />
     </div>
   )
 }

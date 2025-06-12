@@ -1,0 +1,39 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { LoginForm } from "@/components/login-form"
+
+interface LoginPageClientProps {
+  user: any
+  redirectUrl: string
+  message?: string
+  error?: string
+}
+
+export function LoginPageClient({ user, redirectUrl, message, error }: LoginPageClientProps) {
+  const router = useRouter()
+  const [hasHashFragment, setHasHashFragment] = useState(false)
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+    setHasHashFragment(!!window.location.hash)
+  }, [])
+
+  useEffect(() => {
+    // Only redirect if user is logged in and there's no hash fragment (OAuth tokens)
+    if (isClient && user && !hasHashFragment) {
+      console.log("User already logged in, redirecting to:", redirectUrl)
+      router.push(redirectUrl)
+    }
+  }, [user, redirectUrl, router, hasHashFragment, isClient])
+
+  // Show loading while processing OAuth tokens
+  if (isClient && user && hasHashFragment) {
+    console.log("User logged in but processing OAuth tokens...")
+    return <div className="text-center">Processing login...</div>
+  }
+
+  return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
+} 
