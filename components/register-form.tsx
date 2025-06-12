@@ -1,6 +1,7 @@
 "use client"
 
 import type React from "react"
+import dynamic from "next/dynamic"
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -13,7 +14,8 @@ import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
-import { HCaptchaWrapper } from "@/components/HCaptchaWrapper"
+
+const HCaptchaWrapper = dynamic(() => import("@/components/HCaptchaWrapper").then(mod => mod.HCaptchaWrapper), { ssr: false })
 
 export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
   const router = useRouter()
