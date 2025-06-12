@@ -108,7 +108,7 @@ export function LoginForm({
             headers: {
               "Content-Type": "application/json",
             },
-            body: JSON.stringify({ email, password }),
+            body: JSON.stringify({ email, password, captchaToken }),
           })
 
           const data = await response.json()
