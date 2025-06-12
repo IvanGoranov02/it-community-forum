@@ -265,10 +265,10 @@ export function LoginForm({
             </div>
           )}
 
-          {errorMessage && (
+          {(errorMessage || initialError) && (
             <div className="bg-red-100 border border-red-400 text-black px-4 py-3 rounded">
-              <p>{errorMessage}</p>
-              {errorMessage.includes("Email not confirmed") && (
+              <p>{errorMessage || initialError}</p>
+              {(errorMessage || initialError)?.includes("Email not confirmed") && (
                 <Button
                   variant="link"
                   className="p-0 h-auto text-black underline"
@@ -277,6 +277,13 @@ export function LoginForm({
                 >
                   Resend confirmation email
                 </Button>
+              )}
+              {initialError === "oauth-failed" && (
+                <div className="mt-2 text-sm">
+                  <p className="font-medium">OAuth Login Failed</p>
+                  <p>You already have an account with this email address. Please use your email and password to log in instead.</p>
+                  <p className="mt-1 text-xs">If you want to link your Google account, please contact support.</p>
+                </div>
               )}
             </div>
           )}

@@ -23,7 +23,38 @@ export function AuthHashHandler() {
           // Parse the hash fragment as query parameters
           const params = new URLSearchParams(hash)
           
-          // Extract the relevant parameters
+          // Check for OAuth errors first
+          const error = params.get("error")
+          const errorCode = params.get("error_code")
+          const errorDescription = params.get("error_description")
+          
+          if (error) {
+            console.error("OAuth error:", { error, errorCode, errorDescription })
+            
+            let userFriendlyMessage = "There was a problem with OAuth login."
+            
+            if (error === "server_error" && errorDescription?.includes("Multiple accounts")) {
+              userFriendlyMessage = "You already have an account with this email address. Please log in with your email and password instead, or contact support to link your Google account."
+            } else if (errorDescription) {
+              userFriendlyMessage = decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+            }
+            
+            toast({
+              title: "OAuth Login Error",
+              description: userFriendlyMessage,
+              variant: "destructive"
+            })
+            
+            // Clear the hash fragment and redirect to login
+            if (window.history.replaceState) {
+              window.history.replaceState(null, "", window.location.pathname + window.location.search)
+            }
+            
+            router.push("/login?error=oauth-failed")
+            return
+          }
+          
+          // Extract the OAuth success parameters
           const accessToken = params.get("access_token")
           const refreshToken = params.get("refresh_token")
           const expiresAt = params.get("expires_at")
