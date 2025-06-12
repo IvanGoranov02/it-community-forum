@@ -101,6 +101,52 @@ export function AuthHashHandler() {
             console.log("Session set successfully:", data.session?.user?.email)
 
             if (data.session) {
+              // Check if this is an OAuth user and if they have a profile
+              try {
+                const { data: existingProfile } = await supabase
+                  .from("profiles")
+                  .select("id")
+                  .eq("id", data.session.user.id)
+                  .maybeSingle()
+
+                // If no profile exists, create one for OAuth users
+                if (!existingProfile) {
+                  console.log("Creating profile for OAuth user...")
+                  
+                  // Generate username from email
+                  const generateUsername = (email: string) => {
+                    const baseUsername = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "")
+                    return baseUsername + Math.floor(Math.random() * 1000)
+                  }
+
+                  const username = generateUsername(data.session.user.email || "")
+                  const fullName = data.session.user.user_metadata?.full_name || 
+                                  data.session.user.user_metadata?.name || 
+                                  data.session.user.email?.split("@")[0] || 
+                                  "User"
+
+                  const { error: profileError } = await supabase.from("profiles").insert({
+                    id: data.session.user.id,
+                    username,
+                    full_name: fullName,
+                    avatar_url: data.session.user.user_metadata?.avatar_url || 
+                               data.session.user.user_metadata?.picture || null,
+                    created_at: new Date().toISOString(),
+                    updated_at: new Date().toISOString(),
+                  })
+
+                  if (profileError) {
+                    console.error("Error creating profile for OAuth user:", profileError)
+                    // Don't fail the login, just log the error
+                  } else {
+                    console.log("Profile created successfully for OAuth user")
+                  }
+                }
+              } catch (error) {
+                console.error("Error checking/creating profile:", error)
+                // Don't fail the login, just log the error
+              }
+
               // Create a smaller session object for storage
               const storageSession = {
                 access_token: data.session.access_token,
