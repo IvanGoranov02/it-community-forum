@@ -78,7 +78,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
 
       const data = await response.json();
       
-      if (!response.ok) {
+      if (!response.ok && !data.success) {
         console.error("Registration error:", data.error, data.details);
         setErrorMessage(data.error || "Registration failed");
         setDebugInfo({ apiError: data });
@@ -90,7 +90,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       }
 
       // Success
-      console.log("Registration successful");
+      console.log("Registration successful:", data.message || "User created");
       
       // Mark token as successfully used
       if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse);
@@ -98,7 +98,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       // Show success message
       toast({
         title: "Registration successful",
-        description: "Please check your email to confirm your account.",
+        description: data.message || "Please check your email to confirm your account.",
       });
       
       // Redirect to login page

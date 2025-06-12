@@ -43,38 +43,76 @@ export async function GET(request: Request) {
           sameSite: "lax",
         })
 
-        // Check if this is an OAuth user and if they have a profile
+        // Check if this is a user and if they have a profile
         const { data: existingProfile } = await supabase
           .from("profiles")
           .select("id")
           .eq("id", data.user.id)
           .maybeSingle()
 
-        // If no profile exists, create one for OAuth users
+        // If no profile exists, create one
         if (!existingProfile) {
-          const username = generateUsername(data.user.email || "")
+          console.log("Creating profile for user:", data.user.id)
+          
+          // Try to get username from metadata (if set during registration)
+          let username = data.user.user_metadata?.username
+          
+          // If no username in metadata, generate one
+          if (!username) {
+            username = generateUsername(data.user.email || "")
+          }
+          
+          // Get full name from metadata
           const fullName = data.user.user_metadata?.full_name || 
                           data.user.user_metadata?.name || 
                           data.user.email?.split("@")[0] || 
                           "User"
 
-          const { error: profileError } = await supabase.from("profiles").insert({
-            id: data.user.id,
-            username,
-            full_name: fullName,
-            avatar_url: data.user.user_metadata?.avatar_url || null,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          })
+          // Try to create profile
+          try {
+            const { error: profileError } = await supabase.from("profiles").insert({
+              id: data.user.id,
+              username,
+              full_name: fullName,
+              role: "member",
+              reputation: 0,
+              avatar_url: data.user.user_metadata?.avatar_url || null,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            })
 
-          if (profileError) {
-            console.error("Error creating profile for OAuth user:", profileError)
+            if (profileError) {
+              console.error("Error creating profile:", profileError)
+              
+              if (profileError.message && profileError.message.includes("duplicate key")) {
+                // Username already taken, try with a random number suffix
+                const randomSuffix = Math.floor(Math.random() * 10000)
+                username = `${username}${randomSuffix}`
+                
+                const { error: retryError } = await supabase.from("profiles").insert({
+                  id: data.user.id,
+                  username,
+                  full_name: fullName,
+                  role: "member",
+                  reputation: 0,
+                  avatar_url: data.user.user_metadata?.avatar_url || null,
+                  created_at: new Date().toISOString(),
+                  updated_at: new Date().toISOString(),
+                })
+                
+                if (retryError) {
+                  console.error("Error creating profile with random suffix:", retryError)
+                }
+              }
+            }
+          } catch (insertError) {
+            console.error("Exception creating profile:", insertError)
             // Don't fail the login, just log the error
           }
         }
 
-        // Redirect to home page for successful OAuth login
-        return NextResponse.redirect(`${requestUrl.origin}/?message=oauth-success`)
+        // Redirect to home page for successful login
+        return NextResponse.redirect(`${requestUrl.origin}/?message=login-success`)
       }
     } catch (error) {
       console.error("Unexpected error in auth callback:", error)

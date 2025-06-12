@@ -48,6 +48,7 @@ export async function POST(request: Request) {
       options: {
         data: {
           full_name: name,
+          username: username, // Store username in user metadata too
         },
         emailRedirectTo: `${siteUrl}/auth/callback`,
         captchaToken,
@@ -69,32 +70,64 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Failed to create user" }, { status: 500 })
     }
 
-    // Wait a moment to ensure the user is fully created in the auth system
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    console.log("User created successfully with ID:", authData.user.id)
 
-    // Create the profile
-    const { error: profileError } = await supabase.from("profiles").insert({
-      id: authData.user.id,
-      username,
-      full_name: name,
-      role: "member",
-      reputation: 0,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    })
+    // Wait longer to ensure the user is fully created in the auth system
+    // This is critical for the foreign key constraint
+    await new Promise(resolve => setTimeout(resolve, 5000))
 
-    if (profileError) {
-      console.error("Profile error during registration:", profileError)
+    try {
+      // Create the profile
+      const { error: profileError } = await supabase.from("profiles").insert({
+        id: authData.user.id,
+        username,
+        full_name: name,
+        role: "member",
+        reputation: 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+
+      if (profileError) {
+        console.error("Profile error during registration:", profileError)
+        
+        // If this is a foreign key error, it means the user doesn't exist in auth.users
+        if (profileError.message && profileError.message.includes("violates foreign key constraint")) {
+          // Return success anyway since the user was created
+          // The profile will be created when the user confirms their email and logs in
+          return NextResponse.json(
+            {
+              success: true,
+              message: "User created successfully. Please confirm your email to complete registration.",
+              details: "Profile will be created on first login."
+            }
+          )
+        }
+        
+        return NextResponse.json(
+          {
+            error: profileError.message,
+            details: profileError,
+          },
+          { status: 500 }
+        )
+      }
+
+      return NextResponse.json({ 
+        success: true,
+        message: "Registration successful! Please check your email to confirm your account."
+      })
+    } catch (insertError) {
+      console.error("Error during profile creation:", insertError)
+      // Return success anyway since the user was created
       return NextResponse.json(
         {
-          error: profileError.message,
-          details: profileError,
-        },
-        { status: 500 }
+          success: true,
+          message: "User created successfully. Please confirm your email to complete registration.",
+          details: "Profile will be created on first login."
+        }
       )
     }
-
-    return NextResponse.json({ success: true })
   } catch (error) {
     console.error("Unexpected registration API error:", error)
     return NextResponse.json(
