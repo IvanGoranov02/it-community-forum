@@ -55,7 +55,11 @@ export function AuthHashHandler() {
           
           // Stop loading and redirect to home
           stopLoading()
-          router.push("/")
+          
+          // Use setTimeout to ensure loading state is cleared before navigation
+          setTimeout(() => {
+            window.location.href = "/"
+          }, 100);
         } catch (error) {
           console.error("Error handling email confirmation:", error)
           stopLoading()
@@ -89,7 +93,7 @@ export function AuthHashHandler() {
     }
     
     stopLoading()
-    router.push("/login?message=account-exists")
+    window.location.href = "/login?message=account-exists"
     
     throw new Error("User needs to sign in with existing account first")
   }
@@ -173,7 +177,7 @@ export function AuthHashHandler() {
             }
             
             stopLoading()
-            router.push("/login?error=oauth-failed")
+            window.location.href = "/login?error=oauth-failed"
             return
           }
           
@@ -329,6 +333,13 @@ export function AuthHashHandler() {
       console.log("AuthHashHandler: No hash fragment found")
     }
   }, [router, toast, hasProcessed, startLoading, stopLoading, isLoading])
+
+  // Cleanup effect to ensure loading state is cleared when unmounted
+  useEffect(() => {
+    return () => {
+      stopLoading();
+    };
+  }, [stopLoading]);
 
   return null
 } 

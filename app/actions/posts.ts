@@ -39,7 +39,7 @@ export async function createPostWithTags(formData: FormData) {
     const user = await getUser()
 
     if (!user) {
-      return { error: "Трябва да сте влезли в профила си, за да създадете пост" }
+      return { error: "You must be logged in to create a post" }
     }
 
     const title = formData.get("title") as string
@@ -48,17 +48,17 @@ export async function createPostWithTags(formData: FormData) {
     const tagsJson = formData.get("tags") as string
 
     if (!title || !content || !categoryId) {
-      return { error: "Всички полета са задължителни" }
+      return { error: "All fields are required" }
     }
 
-    // Създаваме slug от заглавието
+    // Create slug from title
     const baseSlug = slugify(title)
     const uniqueSlug = `${baseSlug}-${Date.now().toString().slice(-6)}`
 
-    // Създаваме поста
+    // Create post
     const supabase = createServerClient()
 
-    // Проверяваме дали категорията съществува
+    // Check if category exists
     const { data: categoryCheck, error: categoryError } = await supabase
       .from("categories")
       .select("id")
@@ -67,10 +67,10 @@ export async function createPostWithTags(formData: FormData) {
 
     if (categoryError || !categoryCheck) {
       console.error("Error checking category:", categoryError)
-      return { error: "Избраната категория не съществува" }
+      return { error: "The selected category does not exist" }
     }
 
-    // Вмъкваме поста директно - премахваме is_archived полето
+    // Insert post directly - remove is_archived field
     const { data: post, error: postError } = await supabase
       .from("posts")
       .insert({
@@ -79,17 +79,17 @@ export async function createPostWithTags(formData: FormData) {
         category_id: categoryId,
         author_id: user.id,
         slug: uniqueSlug,
-        // Премахваме is_archived: false, тъй като колоната не съществува
+        // Remove is_archived: false since the column doesn't exist
       })
       .select()
       .single()
 
     if (postError || !post) {
       console.error("Error creating post:", postError)
-      return { error: postError?.message || "Грешка при създаването на поста" }
+      return { error: postError?.message || "Error creating post" }
     }
 
-    // Добавяме тагове, ако са предоставени
+    // Add tags if provided
     if (tagsJson) {
       try {
         const tagIds = JSON.parse(tagsJson) as string[]
@@ -101,20 +101,20 @@ export async function createPostWithTags(formData: FormData) {
       }
     }
 
-    // Обработваме споменатите потребители
+    // Process mentioned users
     const mentions = extractMentions(content)
     if (mentions.length > 0) {
-      // Вземаме всички споменати потребители
+      // Get all mentioned users
       const { data: mentionedUsers } = await supabase.from("profiles").select("id, username").in("username", mentions)
 
-      // Създаваме известия за споменатите потребители
+      // Create notifications for mentioned users
       if (mentionedUsers) {
         for (const mentionedUser of mentionedUsers) {
           if (mentionedUser.id !== user.id) {
-            // Не известяваме себе си
+            // Don't notify yourself
             await createNotification(
               mentionedUser.id,
-              `${user.name || user.username} ви спомена в пост: "${title}"`,
+              `${user.name || user.username} mentioned you in a post: "${title}"`,
               `/post/${post.slug}`,
               "mention",
             )
@@ -130,7 +130,7 @@ export async function createPostWithTags(formData: FormData) {
     return { success: true, slug: post.slug }
   } catch (error: any) {
     console.error("Error in createPostWithTags:", error)
-    return { error: error.message || "Грешка при създаването на поста" }
+    return { error: error.message || "Error creating post" }
   }
 }
 

@@ -36,11 +36,11 @@ export default function NewPostPage() {
     }
   }, [user, isPageLoading, router])
 
-      useEffect(() => {
-      const fetchData = async () => {
-        startLoading("Loading...")
-        try {
-          const supabase = createBrowserClient()
+  useEffect(() => {
+    const fetchData = async () => {
+      startLoading("Loading...")
+      try {
+        const supabase = createBrowserClient()
         const { data: categoriesData, error: categoriesError } = await supabase
           .from("categories")
           .select("*")
@@ -94,6 +94,9 @@ export default function NewPostPage() {
   }
 
   const handleSubmit = async (formData: FormData) => {
+    // Prevent double submissions
+    if (isSubmitting) return
+    
     setIsSubmitting(true)
     startLoading("Creating post...")
     
@@ -106,12 +109,23 @@ export default function NewPostPage() {
           description: result.error,
           variant: "destructive",
         })
+        setIsSubmitting(false)
+        stopLoading()
       } else if (result?.success) {
         toast({
           title: "Success",
           description: "Post created successfully",
         })
-        router.push(`/post/${result.slug}`)
+        
+        // Make sure to stop loading before navigation
+        stopLoading()
+        setIsSubmitting(false)
+        
+        // Use setTimeout to ensure state changes are processed before navigation
+        setTimeout(() => {
+          // Use window.location for a full page navigation to ensure clean state
+          window.location.href = `/post/${result.slug}`;
+        }, 100);
       }
     } catch (error) {
       console.error("Error submitting post:", error)
@@ -120,11 +134,17 @@ export default function NewPostPage() {
         description: "An unexpected problem occurred while creating the post",
         variant: "destructive",
       })
-    } finally {
       setIsSubmitting(false)
       stopLoading()
     }
   }
+
+  // Clean up any lingering loading state when component unmounts
+  useEffect(() => {
+    return () => {
+      stopLoading();
+    };
+  }, [stopLoading]);
 
   if (isPageLoading) {
     return null // Global overlay will show
