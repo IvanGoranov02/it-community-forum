@@ -15,6 +15,7 @@ import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
 import { handleAuthError } from "@/utils/errorHandler"
+import { SimpleCaptcha } from "@/components/SimpleCaptcha"
 
 const HCaptchaWrapper = dynamic(() => import("@/components/HCaptchaWrapper").then(mod => mod.HCaptchaWrapper), { ssr: false })
 
@@ -263,11 +264,12 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
           </div>
 
           <div className="flex justify-center my-2" suppressHydrationWarning={true}>
-            <HCaptchaWrapper
+            <SimpleCaptcha
               ref={captchaRef}
               sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"
               onVerify={setCaptchaToken}
               onExpire={() => setCaptchaToken("")}
+              containerId="register-captcha-container"
             />
           </div>
 
