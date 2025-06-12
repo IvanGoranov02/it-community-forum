@@ -56,7 +56,7 @@ export function SiteSettings() {
       <Card>
         <CardHeader>
           <CardTitle>Настройки на сайта</CardTitle>
-          <CardDescription>Зареждане на настройките...</CardDescription>
+          <CardDescription>Loading settings...</CardDescription>
         </CardHeader>
       </Card>
     )

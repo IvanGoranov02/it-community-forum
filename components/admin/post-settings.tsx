@@ -55,7 +55,7 @@ export function PostSettingsPanel() {
       <Card>
         <CardHeader>
           <CardTitle>Настройки на постовете</CardTitle>
-          <CardDescription>Зареждане на настройките...</CardDescription>
+          <CardDescription>Loading settings...</CardDescription>
         </CardHeader>
       </Card>
     )

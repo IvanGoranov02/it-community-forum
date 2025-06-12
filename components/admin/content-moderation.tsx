@@ -123,7 +123,7 @@ export function ContentModeration() {
 
           <TabsContent value="pending" className="space-y-4">
             {isLoading ? (
-              <div className="text-center py-8">Зареждане...</div>
+              <div className="text-center py-8">Loading...</div>
             ) : reports.length === 0 ? (
               <Alert>
                 <CheckCircle className="h-4 w-4" />
@@ -225,7 +225,7 @@ export function ContentModeration() {
           <TabsContent value="all">
             {/* Подобно на горното, но показва всички доклади */}
             {isLoading ? (
-              <div className="text-center py-8">Зареждане...</div>
+              <div className="text-center py-8">Loading...</div>
             ) : reports.length === 0 ? (
               <Alert>
                 <AlertTitle>Няма доклади</AlertTitle>

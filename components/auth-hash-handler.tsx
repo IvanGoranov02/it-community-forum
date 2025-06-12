@@ -21,21 +21,55 @@ export function AuthHashHandler() {
     
     // If this is an email confirmation with auto login
     if (message === "email-confirmed" && autoLogin === "true") {
-      // Remove the query parameters and show toast
-      if (window.history.replaceState) {
-        window.history.replaceState(
-          null, 
-          "", 
-          window.location.pathname
-        )
+      // Start loading if not already loading
+      if (!isLoading) {
+        startLoading("Processing email confirmation...")
       }
       
-      toast({
-        title: "Email Confirmed",
-        description: "Your email has been confirmed. You are now logged in.",
-      })
+      const handleEmailConfirmed = async () => {
+        try {
+          // Attempt to get the current session
+          const supabase = createBrowserClient()
+          const { data } = await supabase.auth.getSession()
+          
+          // If there's a session, the user is already logged in
+          if (data.session) {
+            console.log("User is already logged in after email confirmation")
+          } else {
+            console.log("No session found after email confirmation")
+          }
+          
+          // Remove the query parameters and show toast
+          if (window.history.replaceState) {
+            window.history.replaceState(
+              null, 
+              "", 
+              window.location.pathname
+            )
+          }
+          
+          toast({
+            title: "Email Confirmed",
+            description: "Your email has been confirmed. You are now logged in.",
+          })
+          
+          // Stop loading and redirect to home
+          stopLoading()
+          router.push("/")
+        } catch (error) {
+          console.error("Error handling email confirmation:", error)
+          stopLoading()
+          toast({
+            title: "Error",
+            description: "There was a problem processing your email confirmation.",
+            variant: "destructive",
+          })
+        }
+      }
+      
+      handleEmailConfirmed()
     }
-  }, [searchParams, toast])
+  }, [searchParams, toast, router, startLoading, stopLoading, isLoading])
 
   // Function to handle automatic account linking when OAuth fails due to existing email
   const handleAccountLinking = async (params: URLSearchParams) => {
@@ -165,9 +199,9 @@ export function AuthHashHandler() {
             
             // Set the session manually
             const { data, error } = await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: refreshToken
-            })
+                access_token: accessToken,
+                refresh_token: refreshToken
+              })
             
             if (error) {
               console.error("Error setting session:", error)
@@ -239,7 +273,7 @@ export function AuthHashHandler() {
                   email: data.session.user?.email
                 }
               }
-
+            
               // Store the session in localStorage for client-side auth
               localStorage.setItem("supabase-auth", JSON.stringify(storageSession))
               console.log("Session stored in localStorage")
@@ -257,8 +291,8 @@ export function AuthHashHandler() {
                 console.log("Server-side cookie set successfully")
               } catch (error) {
                 console.warn("Failed to set server-side cookie, but client auth should still work", error)
-              }
-
+            }
+            
               // Show success message
               toast({
                 title: "Login Successful",

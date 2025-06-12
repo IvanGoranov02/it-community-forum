@@ -36,37 +36,32 @@ export default function NewPostPage() {
     }
   }, [user, isPageLoading, router])
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const supabase = createBrowserClient()
-
-        // Fetch categories
+      useEffect(() => {
+      const fetchData = async () => {
+        startLoading("Loading...")
+        try {
+          const supabase = createBrowserClient()
         const { data: categoriesData, error: categoriesError } = await supabase
           .from("categories")
           .select("*")
           .order("name")
-
         if (categoriesError) {
           console.error("Error fetching categories:", categoriesError)
           toast({
-            title: "Грешка",
-            description: "Възникна проблем при зареждането на категориите",
+            title: "Error",
+            description: "There was a problem loading the categories",
             variant: "destructive",
           })
           setCategories([])
         } else {
           setCategories(categoriesData || [])
         }
-
-        // Fetch tags
         const { data: tagsData, error: tagsError } = await supabase.from("tags").select("*").order("name")
-
         if (tagsError) {
           console.error("Error fetching tags:", tagsError)
           toast({
-            title: "Грешка",
-            description: "Възникна проблем при зареждането на таговете",
+            title: "Error",
+            description: "There was a problem loading the tags",
             variant: "destructive",
           })
           setTags([])
@@ -76,17 +71,18 @@ export default function NewPostPage() {
       } catch (error) {
         console.error("Error in fetchData:", error)
         toast({
-          title: "Грешка",
-          description: "Възникна неочакван проблем при зареждането на данните",
+          title: "Error",
+          description: "An unexpected problem occurred while loading data",
           variant: "destructive",
         })
       } finally {
         setIsPageLoading(false)
+        stopLoading()
       }
     }
 
     fetchData()
-  }, [toast])
+  }, [toast, startLoading, stopLoading])
 
   const handleTagChange = (tags) => {
     setSelectedTags(tags)
@@ -99,29 +95,29 @@ export default function NewPostPage() {
 
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true)
-    startLoading("Създаване на пост...")
+    startLoading("Creating post...")
     
     try {
       const result = await createPostWithTags(formData)
 
       if (result?.error) {
         toast({
-          title: "Грешка",
+          title: "Error",
           description: result.error,
           variant: "destructive",
         })
       } else if (result?.success) {
         toast({
-          title: "Успех",
-          description: "Постът е създаден успешно",
+          title: "Success",
+          description: "Post created successfully",
         })
         router.push(`/post/${result.slug}`)
       }
     } catch (error) {
       console.error("Error submitting post:", error)
       toast({
-        title: "Грешка",
-        description: "Възникна неочакван проблем при създаването на поста",
+        title: "Error",
+        description: "An unexpected problem occurred while creating the post",
         variant: "destructive",
       })
     } finally {
@@ -131,14 +127,7 @@ export default function NewPostPage() {
   }
 
   if (isPageLoading) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="text-center py-12">
-          <LoadingSpinner size="lg" />
-          <p className="mt-4 text-muted-foreground">Зареждане на формуляра...</p>
-        </div>
-      </div>
-    )
+    return null // Global overlay will show
   }
 
   if (!user) {
@@ -150,28 +139,28 @@ export default function NewPostPage() {
       <div className="mb-6">
         <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground mb-4">
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Обратно към форума
+          Back to forum
         </Link>
-        <h1 className="text-3xl font-bold tracking-tight">Създаване на нов пост</h1>
-        <p className="text-muted-foreground mt-1">Споделете вашите мисли, въпроси или идеи с общността</p>
+        <h1 className="text-3xl font-bold tracking-tight">Create new post</h1>
+        <p className="text-muted-foreground mt-1">Share your thoughts, questions or ideas with the community</p>
       </div>
 
       <Card>
         <form action={handleSubmit}>
           <CardHeader>
-            <CardTitle>Детайли за поста</CardTitle>
-            <CardDescription>Попълнете детайлите за вашия нов пост</CardDescription>
+            <CardTitle>Post details</CardTitle>
+            <CardDescription>Fill in the details for your new post</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="title">Заглавие</Label>
-              <Input id="title" name="title" placeholder="Въведете описателно заглавие" required />
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" name="title" placeholder="Enter a descriptive title" required />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Категория</Label>
+              <Label htmlFor="category">Category</Label>
               <Select name="category" required>
                 <SelectTrigger>
-                  <SelectValue placeholder="Изберете категория" />
+                  <SelectValue placeholder="Select a category" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
@@ -183,16 +172,16 @@ export default function NewPostPage() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="tags">Тагове</Label>
+              <Label htmlFor="tags">Tags</Label>
               <TagInput availableTags={tags} onChange={handleTagChange} />
               <input type="hidden" id="tags-input" name="tags" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="content">Съдържание</Label>
+              <Label htmlFor="content">Content</Label>
               <Textarea
                 id="content"
                 name="content"
-                placeholder="Напишете съдържанието на вашия пост тук... Използвайте @username за да споменете потребители"
+                placeholder="Write your post content here... Use @username to mention users"
                 className="min-h-[200px]"
                 required
               />
@@ -201,11 +190,11 @@ export default function NewPostPage() {
           <CardFooter className="flex justify-between">
             <Link href="/">
               <Button variant="outline" type="button">
-                Отказ
+                Cancel
               </Button>
             </Link>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Създаване..." : "Създай пост"}
+              {isSubmitting ? "Creating..." : "Create post"}
             </Button>
           </CardFooter>
         </form>

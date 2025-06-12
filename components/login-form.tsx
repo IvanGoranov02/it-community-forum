@@ -93,8 +93,8 @@ export function LoginForm({
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
-          password,
+        email,
+        password,
           captchaToken: tokenToUse,
         }),
       });
@@ -115,7 +115,7 @@ export function LoginForm({
               emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
             },
           });
-          
+
           if (!resendError) {
             toast({
               title: "Confirmation email resent",
@@ -137,10 +137,10 @@ export function LoginForm({
       
       // Mark token as successfully used
       if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse);
-      
-      toast({
-        title: "Login successful",
-        description: "Welcome back!",
+
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
       });
       
       // Refresh the page to ensure we have the latest session
@@ -169,7 +169,7 @@ export function LoginForm({
       return
     }
 
-    startLoading("Изпращане на имейл за потвърждение...")
+    startLoading("Sending confirmation email...")
     try {
       const supabase = createBrowserClient()
 
