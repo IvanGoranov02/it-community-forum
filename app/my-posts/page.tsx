@@ -124,7 +124,7 @@ export default async function MyPostsPage() {
                             </Link>
                           </CardTitle>
                           <CardDescription className="flex flex-wrap items-center gap-2">
-                            <Link href={`/category/${post.category?.slug || "#"}`}> 
+                            <Link href={`/category/${post.category?.slug || "#"}`}>
                               <Badge variant="secondary" className="hover:bg-secondary/80 text-xs px-2 py-0.5">
                                 {post.category?.name || "Uncategorized"}
                               </Badge>

@@ -84,6 +84,10 @@ export default function NewPostPage() {
     fetchData()
   }, [toast, startLoading, stopLoading])
 
+  useEffect(() => {
+    stopLoading(); // Always clear loading on mount
+  }, [stopLoading]);
+
   const handleTagChange = (tags) => {
     setSelectedTags(tags)
     // Update hidden input
@@ -138,13 +142,6 @@ export default function NewPostPage() {
       stopLoading()
     }
   }
-
-  // Clean up any lingering loading state when component unmounts
-  useEffect(() => {
-    return () => {
-      stopLoading();
-    };
-  }, [stopLoading]);
 
   if (isPageLoading) {
     return null // Global overlay will show

@@ -334,6 +334,19 @@ export function AuthHashHandler() {
     }
   }, [router, toast, hasProcessed, startLoading, stopLoading, isLoading])
 
+  // Timeout fallback for loading overlay
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      stopLoading();
+      toast({
+        title: "Timeout",
+        description: "Something took too long. Please try again.",
+        variant: "destructive",
+      });
+    }, 10000);
+    return () => clearTimeout(timeout);
+  }, [stopLoading, toast]);
+
   // Cleanup effect to ensure loading state is cleared when unmounted
   useEffect(() => {
     return () => {

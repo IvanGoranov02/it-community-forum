@@ -67,6 +67,19 @@ export function LoginForm({
     }
   }, [searchParams, toast])
 
+  // Timeout fallback for loading overlay
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      stopLoading();
+      toast({
+        title: "Timeout",
+        description: "Something took too long. Please try again.",
+        variant: "destructive",
+      });
+    }, 10000);
+    return () => clearTimeout(timeout);
+  }, [stopLoading, toast]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     startLoading("Logging in...")
@@ -259,9 +272,11 @@ export function LoginForm({
           description: error.message,
           variant: "destructive",
         })
+        stopLoading();
       } else if (data.url) {
         // Redirect to OAuth provider
         window.location.href = data.url
+        stopLoading(); // Just in case
       }
     } catch (error) {
       console.error(`${provider} OAuth error:`, error)
@@ -271,8 +286,7 @@ export function LoginForm({
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      stopLoading()
+      stopLoading();
     }
   }
 
