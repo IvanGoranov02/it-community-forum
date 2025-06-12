@@ -1,13 +1,15 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
+import { Loader2 } from "lucide-react"
 
 export function AuthHashHandler() {
   const router = useRouter()
   const { toast } = useToast()
+  const [isProcessing, setIsProcessing] = useState(false)
 
   useEffect(() => {
     // Only run in browser
@@ -19,6 +21,8 @@ export function AuthHashHandler() {
 
     // Check if there's a hash fragment in the URL
     if (window.location.hash) {
+      setIsProcessing(true)
+      
       const handleHashParams = async () => {
         try {
           console.log("AuthHashHandler: Processing hash fragment")
@@ -58,6 +62,7 @@ export function AuthHashHandler() {
               window.history.replaceState(null, "", window.location.pathname + window.location.search)
             }
             
+            setIsProcessing(false)
             router.push("/login?error=oauth-failed")
             return
           }
@@ -95,6 +100,7 @@ export function AuthHashHandler() {
                 description: "There was a problem processing your authentication. Please try again.",
                 variant: "destructive"
               })
+              setIsProcessing(false)
               return
             }
 
@@ -196,6 +202,7 @@ export function AuthHashHandler() {
             }
           } else {
             console.log("AuthHashHandler: No valid OAuth tokens found in hash")
+            setIsProcessing(false)
           }
         } catch (error) {
           console.error("Error processing auth hash:", error)
@@ -204,6 +211,7 @@ export function AuthHashHandler() {
             description: "There was a problem processing your authentication. Please try again.",
             variant: "destructive"
           })
+          setIsProcessing(false)
         }
       }
       
@@ -213,6 +221,23 @@ export function AuthHashHandler() {
     }
   }, [router, toast])
 
-  // This component doesn't render anything
+  // Show loading spinner while processing OAuth tokens
+  if (isProcessing) {
+    return (
+      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="bg-card p-8 rounded-lg shadow-lg border flex flex-col items-center gap-4">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <div className="text-center">
+            <h3 className="text-lg font-semibold">Processing login...</h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              Please wait while we complete your OAuth authentication
+            </p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // This component doesn't render anything when not processing
   return null
 } 

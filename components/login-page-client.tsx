@@ -32,7 +32,17 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   // Show loading while processing OAuth tokens
   if (isClient && user && hasHashFragment) {
     console.log("User logged in but processing OAuth tokens...")
-    return <div className="text-center">Processing login...</div>
+    return (
+      <div className="text-center space-y-4">
+        <div className="animate-pulse">
+          <div className="h-4 bg-muted rounded w-48 mx-auto mb-2"></div>
+          <div className="h-3 bg-muted rounded w-32 mx-auto"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Completing your login...
+        </p>
+      </div>
+    )
   }
 
   return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
