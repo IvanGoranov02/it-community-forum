@@ -8,13 +8,24 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Invalid session data" }, { status: 400 })
     }
 
+    // Create a smaller session object for the cookie
+    const cookieSession = {
+      access_token: session.access_token,
+      refresh_token: session.refresh_token,
+      expires_at: session.expires_at,
+      user: {
+        id: session.user?.id,
+        email: session.user?.email
+      }
+    }
+
     // Create a response
     const response = NextResponse.json({ success: true })
     
-    // Set the auth cookie directly on the response
+    // Set the auth cookie with smaller data
     response.cookies.set({
       name: "supabase-auth",
-      value: JSON.stringify(session),
+      value: JSON.stringify(cookieSession),
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 1 week
       httpOnly: true,

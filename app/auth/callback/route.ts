@@ -21,10 +21,21 @@ export async function GET(request: Request) {
       }
 
       if (data.session && data.user) {
-        // Set the auth cookie
+        // Create a smaller session object for the cookie
+        const cookieSession = {
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+          expires_at: data.session.expires_at,
+          user: {
+            id: data.user.id,
+            email: data.user.email
+          }
+        }
+
+        // Set the auth cookie with smaller data
         await cookieStore.set({
           name: "supabase-auth",
-          value: JSON.stringify(data.session),
+          value: JSON.stringify(cookieSession),
           path: "/",
           maxAge: 60 * 60 * 24 * 7, // 1 week
           httpOnly: true,

@@ -82,8 +82,19 @@ export function AuthHashHandler() {
             }
 
             if (data.session) {
+              // Create a smaller session object for storage
+              const storageSession = {
+                access_token: data.session.access_token,
+                refresh_token: data.session.refresh_token,
+                expires_at: data.session.expires_at,
+                user: {
+                  id: data.session.user?.id,
+                  email: data.session.user?.email
+                }
+              }
+
               // Store the session in localStorage for client-side auth
-              localStorage.setItem("supabase-auth", JSON.stringify(data.session))
+              localStorage.setItem("supabase-auth", JSON.stringify(storageSession))
               
               // Also set the cookie via API for server-side auth
               try {
