@@ -53,7 +53,9 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       return
     }
 
-    console.log('DEBUG: captchaToken before register:', captchaToken)
+    // Store and clear token immediately
+    const tokenToUse = captchaToken
+    setCaptchaToken("")
 
     // Generate username from email if not provided
     const finalUsername =
@@ -72,17 +74,17 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       if (checkError) {
         setErrorMessage("Error checking username availability")
         setDebugInfo({ checkError })
-        stopLoading()
         if (captchaRef.current) captchaRef.current.reset()
         setCaptchaToken("")
+        stopLoading()
         return
       }
 
       if (existingUser) {
         setErrorMessage("Username is already taken. Please choose another one.")
-        stopLoading()
         if (captchaRef.current) captchaRef.current.reset()
         setCaptchaToken("")
+        stopLoading()
         return
       }
 
@@ -98,7 +100,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
             full_name: name,
           },
           emailRedirectTo: `${siteUrl}/auth/callback`,
-          captchaToken,
+          captchaToken: tokenToUse,
         },
       })
 
@@ -106,17 +108,15 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         console.error("Auth error during registration:", authError)
         setErrorMessage(authError.message || "Failed to create user")
         setDebugInfo({ authError })
-        stopLoading()
         if (captchaRef.current) captchaRef.current.reset()
-        setCaptchaToken("")
+        stopLoading()
         return
       }
 
       if (!authData.user) {
         setErrorMessage("Failed to create user")
-        stopLoading()
         if (captchaRef.current) captchaRef.current.reset()
-        setCaptchaToken("")
+        stopLoading()
         return
       }
 
@@ -135,9 +135,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         console.error("Profile error during registration:", profileError)
         setErrorMessage(profileError.message)
         setDebugInfo({ profileError })
-        stopLoading()
         if (captchaRef.current) captchaRef.current.reset()
-        setCaptchaToken("")
+        stopLoading()
         return
       }
 
@@ -147,8 +146,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         description: "Please check your email to confirm your account.",
       })
 
-      // Mark captcha token as used
-      if (captchaRef.current) captchaRef.current.markTokenAsUsed(captchaToken)
+      // Mark token as successfully used
+      if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse)
 
       // Redirect to login page and stop loading
       router.push("/login?message=registration-success")
@@ -157,9 +156,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       console.error("Unexpected error during registration:", error)
       setErrorMessage("An unexpected error occurred during registration")
       setDebugInfo({ unexpectedError: error })
-      stopLoading()
       if (captchaRef.current) captchaRef.current.reset()
-      setCaptchaToken("")
+      stopLoading()
     }
   }
 
@@ -264,7 +262,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
             <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
           </div>
 
-          <div className="flex justify-center my-2">
+          <div className="flex justify-center my-2" suppressHydrationWarning={true}>
             <HCaptchaWrapper
               ref={captchaRef}
               sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"

@@ -300,7 +300,7 @@ export function LoginForm({
           </div>
 
           {/* Add hCaptcha */}
-          <div className="flex justify-center my-2">
+          <div className="flex justify-center my-2" suppressHydrationWarning={true}>
             <HCaptchaWrapper
               ref={captchaRef}
               sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"

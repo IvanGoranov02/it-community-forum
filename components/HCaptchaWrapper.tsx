@@ -89,7 +89,7 @@ export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
   }
   return (
     <NoStrictMode>
-      <div className="flex justify-center my-2">
+      <div className="flex justify-center my-2" suppressHydrationWarning={true}>
         {ready && (
           <HCaptcha
             sitekey={sitekey}

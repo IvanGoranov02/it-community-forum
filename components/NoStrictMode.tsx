@@ -3,6 +3,6 @@ import { Component, ReactNode } from "react";
 
 export class NoStrictMode extends Component<{ children: ReactNode }> {
   render() {
-    return this.props.children;
+    return <div suppressHydrationWarning={true}>{this.props.children}</div>;
   }
 } 
