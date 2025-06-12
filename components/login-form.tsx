@@ -49,6 +49,8 @@ export function LoginForm({
       return
     }
 
+    console.log('DEBUG: captchaToken before login:', captchaToken)
+
     try {
       const supabase = createBrowserClient()
 

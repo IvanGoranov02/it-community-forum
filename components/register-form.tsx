@@ -47,6 +47,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       return
     }
 
+    console.log('DEBUG: captchaToken before register:', captchaToken)
+
     // Generate username from email if not provided
     const finalUsername =
       username || email.split("@")[0].replace(/[^a-zA-Z0-9]/g, "") + Math.floor(Math.random() * 1000)
