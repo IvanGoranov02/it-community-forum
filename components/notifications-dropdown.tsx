@@ -77,9 +77,9 @@ export function NotificationsDropdown({
         (payload) => {
           console.log("Received new notification:", payload)
           if (isMounted) {
-            const newNotification = payload.new as Notification
-            setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
-            setUnreadCount((prev) => prev + 1)
+          const newNotification = payload.new as Notification
+          setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
+          setUnreadCount((prev) => prev + 1)
           }
         },
       )

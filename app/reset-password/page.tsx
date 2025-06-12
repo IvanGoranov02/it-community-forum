@@ -8,9 +8,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
-import { createBrowserClient } from "@/lib/supabase"
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
+import { createBrowserClient } from "@/lib/supabase"
 
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState("")
@@ -19,11 +19,11 @@ export default function ResetPasswordPage() {
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [error, setError] = useState("")
   const { toast } = useToast()
-  const router = useRouter()
   const searchParams = useSearchParams();
   const accessToken = searchParams.get("access_token");
   const refreshToken = searchParams.get("refresh_token");
   const type = searchParams.get("type");
+  const router = useRouter()
 
   useEffect(() => {
     // If we have a valid recovery token, no need to check session or redirect
@@ -47,30 +47,6 @@ export default function ResetPasswordPage() {
     }
     checkSession()
   }, [router, toast, accessToken, type])
-
-  // Handle Supabase hash fragment for password recovery
-  useEffect(() => {
-    if (typeof window !== "undefined" && window.location.hash) {
-      const hash = window.location.hash.substring(1); // remove '#'
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get("access_token");
-      const type = params.get("type");
-      
-      if (accessToken && type === "recovery") {
-        // Get all parameters from the hash
-        const refreshToken = params.get("refresh_token");
-        
-        // Build the new URL with query parameters
-        const queryParams = new URLSearchParams();
-        queryParams.set("access_token", accessToken);
-        if (refreshToken) queryParams.set("refresh_token", refreshToken);
-        queryParams.set("type", type);
-        
-        // Replace the current URL with query parameters instead of hash
-        router.replace(`/reset-password?${queryParams.toString()}`);
-      }
-    }
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
