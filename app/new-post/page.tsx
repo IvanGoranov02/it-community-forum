@@ -120,16 +120,9 @@ export default function NewPostPage() {
           title: "Success",
           description: "Post created successfully",
         })
-        
-        // Make sure to stop loading before navigation
         stopLoading()
         setIsSubmitting(false)
-        
-        // Use setTimeout to ensure state changes are processed before navigation
-        setTimeout(() => {
-          // Use window.location for a full page navigation to ensure clean state
-          window.location.href = `/post/${result.slug}`;
-        }, 100);
+        router.replace(`/post/${result.slug}`)
       }
     } catch (error) {
       console.error("Error submitting post:", error)

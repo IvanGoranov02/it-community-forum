@@ -6,12 +6,14 @@ import { createBrowserClient } from "@/lib/supabase"
 import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
 import { useLoading } from "@/app/context/loading-context"
+import { useAuth } from "@/app/context/auth-context"
 
 export function AuthHashHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
   const { startLoading, stopLoading, isLoading } = useLoading()
+  const { user, refreshUser } = useAuth ? useAuth() : { user: null, refreshUser: null }
   const [hasProcessed, setHasProcessed] = useState(false)
 
   // Check for auto login after email confirmation
@@ -19,49 +21,37 @@ export function AuthHashHandler() {
     const message = searchParams?.get("message")
     const autoLogin = searchParams?.get("auto_login")
     
-    // If this is an email confirmation with auto login
     if (message === "email-confirmed" && autoLogin === "true") {
-      // Start loading if not already loading
       if (!isLoading) {
         startLoading("Processing email confirmation...")
       }
-      
       const handleEmailConfirmed = async () => {
         try {
-          // Attempt to get the current session
           const supabase = createBrowserClient()
           const { data } = await supabase.auth.getSession()
-          
-          // If there's a session, the user is already logged in
           if (data.session) {
-            console.log("User is already logged in after email confirmation")
+            // Sync server cookie
+            await fetch("/api/set-auth-cookie", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ session: data.session })
+            })
+            if (refreshUser) await refreshUser()
+            toast({
+              title: "Email Confirmed",
+              description: "Your email has been confirmed. You are now logged in.",
+            })
+            stopLoading()
+            router.replace("/")
           } else {
-            console.log("No session found after email confirmation")
+            stopLoading()
+            toast({
+              title: "Error",
+              description: "No session found after email confirmation.",
+              variant: "destructive",
+            })
           }
-          
-          // Remove the query parameters and show toast
-          if (window.history.replaceState) {
-            window.history.replaceState(
-              null, 
-              "", 
-              window.location.pathname
-            )
-          }
-          
-          toast({
-            title: "Email Confirmed",
-            description: "Your email has been confirmed. You are now logged in.",
-          })
-          
-          // Stop loading and redirect to home
-          stopLoading()
-          
-          // Use setTimeout to ensure loading state is cleared before navigation
-          setTimeout(() => {
-            window.location.href = "/"
-          }, 100);
         } catch (error) {
-          console.error("Error handling email confirmation:", error)
           stopLoading()
           toast({
             title: "Error",
@@ -70,10 +60,9 @@ export function AuthHashHandler() {
           })
         }
       }
-      
       handleEmailConfirmed()
     }
-  }, [searchParams, toast, router, startLoading, stopLoading, isLoading])
+  }, [searchParams, toast, router, startLoading, stopLoading, isLoading, refreshUser])
 
   // Function to handle automatic account linking when OAuth fails due to existing email
   const handleAccountLinking = async (params: URLSearchParams) => {
@@ -311,7 +300,7 @@ export function AuthHashHandler() {
               console.log("Redirecting to home page...")
               // Stop loading and redirect
               stopLoading()
-              window.location.href = "/"
+              router.replace("/")
             }
           } else {
             console.log("AuthHashHandler: No valid OAuth tokens found in hash")
