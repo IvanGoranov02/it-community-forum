@@ -131,7 +131,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
 
   // OAuth login handler
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
-    startLoading(`Регистрация с ${provider === 'google' ? 'Google' : 'GitHub'}...`)
+    startLoading(`Register with ${provider === 'google' ? 'Google' : 'GitHub'}...`)
     setErrorMessage("")
 
     try {

@@ -159,25 +159,25 @@ export function UserManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Потребител</TableHead>
-                <TableHead>Роля</TableHead>
-                <TableHead>Регистриран на</TableHead>
-                <TableHead>Репутация</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead className="text-right">Действия</TableHead>
+                <TableHead>User</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Registered on</TableHead>
+                <TableHead>Reputation</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Зареждане...
+                    Loading...
                   </TableCell>
                 </TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={6} className="text-center py-8">
-                    Няма намерени потребители
+                    No users found
                   </TableCell>
                 </TableRow>
               ) : (
