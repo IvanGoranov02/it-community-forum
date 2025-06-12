@@ -278,11 +278,11 @@ export function LoginForm({
                   Resend confirmation email
                 </Button>
               )}
-              {initialError === "oauth-failed" && (
+              {(initialError === "oauth-failed" || message === "account-exists") && (
                 <div className="mt-2 text-sm">
-                  <p className="font-medium">OAuth Login Failed</p>
-                  <p>You already have an account with this email address. Please use your email and password to log in instead.</p>
-                  <p className="mt-1 text-xs">If you want to link your Google account, please contact support.</p>
+                  <p className="font-medium">Account Already Exists</p>
+                  <p>You already have an account with this email address. Please sign in with your email and password below.</p>
+                  <p className="mt-1 text-xs text-muted-foreground">After signing in, you can link your OAuth accounts in your profile settings.</p>
                 </div>
               )}
             </div>

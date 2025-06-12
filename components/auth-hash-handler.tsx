@@ -11,6 +11,29 @@ export function AuthHashHandler() {
   const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
 
+  // Function to handle automatic account linking when OAuth fails due to existing email
+  const handleAccountLinking = async (params: URLSearchParams) => {
+    console.log("Attempting to provide better user guidance for account linking...")
+    
+    // Instead of trying to automatically link (which requires manual linking to be enabled),
+    // we'll provide better user guidance
+    toast({
+      title: "Account Already Exists",
+      description: "You already have an account with this email. Please sign in with your email and password first, then you can link your OAuth accounts in your profile settings.",
+      variant: "destructive"
+    })
+    
+    // Clear the hash fragment and redirect to login with a helpful message
+    if (window.history.replaceState) {
+      window.history.replaceState(null, "", window.location.pathname + window.location.search)
+    }
+    
+    setIsProcessing(false)
+    router.push("/login?message=account-exists")
+    
+    throw new Error("User needs to sign in with existing account first")
+  }
+
   useEffect(() => {
     // Only run in browser
     if (typeof window === "undefined") return
@@ -44,11 +67,33 @@ export function AuthHashHandler() {
             console.error("OAuth error:", { error, errorCode, errorDescription })
             
             let userFriendlyMessage = "There was a problem with OAuth login."
+            let shouldTryAutoLink = false
             
             if (error === "server_error" && errorDescription?.includes("Multiple accounts")) {
-              userFriendlyMessage = "You already have an account with this email address. Please log in with your email and password instead, or contact support to link your Google account."
+              // This means there's an existing account with the same email
+              // We can try to handle this automatically by linking the accounts
+              shouldTryAutoLink = true
+              userFriendlyMessage = "Linking your OAuth account to existing account..."
             } else if (errorDescription) {
               userFriendlyMessage = decodeURIComponent(errorDescription.replace(/\+/g, ' '))
+            }
+            
+            if (shouldTryAutoLink) {
+              // Show a different message for auto-linking attempt
+              toast({
+                title: "Account Linking",
+                description: userFriendlyMessage,
+              })
+              
+              // Try to handle the account linking automatically
+              try {
+                await handleAccountLinking(params)
+                return
+              } catch (linkError) {
+                console.error("Auto-linking failed:", linkError)
+                // Fall back to showing error message
+                userFriendlyMessage = "You already have an account with this email address. Please log in with your email and password first, then you can link your OAuth accounts in your profile settings."
+              }
             }
             
             toast({

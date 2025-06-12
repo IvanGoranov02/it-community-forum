@@ -1,4 +1,5 @@
 import { ProfileEditForm } from "@/components/profile-edit-form"
+import { OAuthAccountsManager } from "@/components/oauth-accounts-manager"
 import { getUser } from "@/app/actions/auth"
 import { createServerClient } from "@/lib/supabase"
 import { redirect } from "next/navigation"
@@ -33,15 +34,19 @@ export default async function EditProfilePage() {
         <p className="text-muted-foreground mt-1">Update your profile information</p>
       </div>
 
-      <ProfileEditForm
-        user={{
-          id: user.id,
-          username: user.username,
-          name: user.name,
-          bio: profile?.bio || undefined,
-          avatar: profile?.avatar_url || undefined,
-        }}
-      />
+      <div className="space-y-8">
+        <ProfileEditForm
+          user={{
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            bio: profile?.bio || undefined,
+            avatar: profile?.avatar_url || undefined,
+          }}
+        />
+        
+        <OAuthAccountsManager />
+      </div>
     </div>
   )
 }
