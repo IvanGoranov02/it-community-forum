@@ -9,13 +9,14 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
 import { handleAuthError } from "@/utils/errorHandler"
 import { SimpleCaptcha } from "@/components/SimpleCaptcha"
+import { CheckCircle, AlertCircle } from "lucide-react"
 
 const HCaptchaWrapper = dynamic(() => import("@/components/HCaptchaWrapper").then(mod => mod.HCaptchaWrapper), { ssr: false })
 
@@ -41,10 +42,34 @@ export function LoginForm({
   const [magicLoading, setMagicLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState("")
   const captchaRef = useRef<any>(null)
+  const searchParams = useSearchParams()
+  const [successMessage, setSuccessMessage] = useState("")
+
+  useEffect(() => {
+    const message = searchParams?.get("message")
+    
+    if (message === "registration-success") {
+      setSuccessMessage("Registration successful! Please log in.")
+    } else if (message === "email-confirmed") {
+      setSuccessMessage("Email confirmed successfully! You can now log in.")
+      toast({
+        title: "Email Confirmed",
+        description: "Your email has been confirmed. You can now log in to your account.",
+        duration: 5000,
+      })
+    } else if (message === "password-reset-success") {
+      setSuccessMessage("Password reset successful! Please log in with your new password.")
+    }
+
+    const error = searchParams?.get("error")
+    if (error) {
+      setErrorMessage(decodeURIComponent(searchParams?.get("message") || "An error occurred"))
+    }
+  }, [searchParams, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    startLoading("Login...")
+    startLoading("Logging in...")
     setErrorMessage("")
     setDebugInfo(null)
 
@@ -259,19 +284,17 @@ export function LoginForm({
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          {message && (
-            <div className="bg-green-100 border border-green-400 text-black px-4 py-3 rounded">
-              <p>
-                {message === "registration-success"
-                  ? "Registration successful! You can now log in."
-                  : message}
-              </p>
+          {successMessage && (
+            <div className="bg-green-100 dark:bg-green-950 border border-green-400 dark:border-green-800 text-green-800 dark:text-green-300 px-4 py-3 rounded flex items-start space-x-2">
+              <CheckCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <span>{successMessage}</span>
             </div>
           )}
 
           {(errorMessage || initialError) && (
-            <div className="bg-red-100 border border-red-400 text-black px-4 py-3 rounded">
-              <p>{errorMessage || initialError}</p>
+            <div className="bg-red-100 dark:bg-red-950 border border-red-400 dark:border-red-800 text-red-800 dark:text-red-300 px-4 py-3 rounded flex items-start space-x-2">
+              <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
+              <span>{errorMessage || initialError}</span>
               {(errorMessage || initialError)?.includes("Email not confirmed") && (
                 <Button
                   variant="link"

@@ -98,11 +98,11 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       // Show success message
       toast({
         title: "Registration successful",
-        description: data.message || "Please check your email to confirm your account.",
-      });
+        description: "Please check your email to confirm your account. You must confirm your email before you can log in.",
+      })
       
-      // Redirect to login page
-      router.push("/login?message=registration-success");
+      // Redirect to confirmation page instead of login
+      router.push("/registration-success?email=" + encodeURIComponent(email));
     } catch (error) {
       console.error("Unexpected error during registration:", error);
       setErrorMessage("An unexpected error occurred during registration");

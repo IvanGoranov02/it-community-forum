@@ -6,6 +6,7 @@ import { generateUsername } from "@/lib/utils"
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
+  const type = requestUrl.searchParams.get("type") || ""
 
   if (code) {
     try {
@@ -17,7 +18,7 @@ export async function GET(request: Request) {
 
       if (error) {
         console.error("Error exchanging code for session:", error)
-        return NextResponse.redirect(`${requestUrl.origin}/login?error=auth-callback-error`)
+        return NextResponse.redirect(`${requestUrl.origin}/login?error=auth-callback-error&message=${encodeURIComponent(error.message)}`)
       }
 
       if (data.session && data.user) {
@@ -111,8 +112,20 @@ export async function GET(request: Request) {
           }
         }
 
-        // Redirect to home page for successful login
-        return NextResponse.redirect(`${requestUrl.origin}/?message=login-success`)
+        // Determine redirect based on the type of callback
+        if (type === "recovery") {
+          // Password reset flow
+          return NextResponse.redirect(`${requestUrl.origin}/reset-password?session=${encodeURIComponent(data.session.access_token)}`)
+        } else if (type === "email_change") {
+          // Email change flow
+          return NextResponse.redirect(`${requestUrl.origin}/profile/edit?message=email-change-success`)
+        } else if (type === "signup") {
+          // Email confirmation after signup
+          return NextResponse.redirect(`${requestUrl.origin}/login?message=email-confirmed`)
+        } else {
+          // Default case: regular login or OAuth callback
+          return NextResponse.redirect(`${requestUrl.origin}/?message=login-success`)
+        }
       }
     } catch (error) {
       console.error("Unexpected error in auth callback:", error)
