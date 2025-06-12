@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
+import HCaptcha from "react-hcaptcha"
 
 export function LoginForm({
   redirectUrl = "/",
@@ -32,6 +33,8 @@ export function LoginForm({
   const [debugInfo, setDebugInfo] = useState<any>(null)
   const [magicEmail, setMagicEmail] = useState("")
   const [magicLoading, setMagicLoading] = useState(false)
+  const [captchaToken, setCaptchaToken] = useState("")
+  const captchaRef = useRef<HCaptcha>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,13 +42,22 @@ export function LoginForm({
     setErrorMessage("")
     setDebugInfo(null)
 
+    if (!captchaToken) {
+      setErrorMessage("Please complete the captcha verification")
+      stopLoading()
+      return
+    }
+
     try {
       const supabase = createBrowserClient()
 
-      // Try client-side login
+      // Try client-side login with captcha token
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          captchaToken,
+        }
       })
 
       if (authError) {
@@ -314,6 +326,16 @@ export function LoginForm({
                 <Link href="/forgot-password">Forgot password?</Link>
               </Button>
             </div>
+          </div>
+
+          {/* Add hCaptcha */}
+          <div className="flex justify-center my-2">
+            <HCaptcha
+              sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken("")}
+              ref={captchaRef}
+            />
           </div>
 
           {debugInfo && <DebugInfo title="Debug Information" data={debugInfo} />}

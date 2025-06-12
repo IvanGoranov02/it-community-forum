@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
+import HCaptcha from "react-hcaptcha"
 
 export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
   const router = useRouter()
@@ -24,6 +25,8 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
   const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [captchaToken, setCaptchaToken] = useState("")
+  const captchaRef = useRef<HCaptcha>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -33,6 +36,12 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
 
     if (!email || !name || !password) {
       setErrorMessage("All fields are required")
+      stopLoading()
+      return
+    }
+
+    if (!captchaToken) {
+      setErrorMessage("Please complete the captcha verification")
       stopLoading()
       return
     }
@@ -67,7 +76,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
       // Get the site URL from environment variable or use the current origin
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || window.location.origin
 
-      // Create the user with the correct redirect URL
+      // Create the user with the correct redirect URL and captcha token
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -76,6 +85,7 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
             full_name: name,
           },
           emailRedirectTo: `${siteUrl}/auth/callback`,
+          captchaToken,
         },
       })
 
@@ -228,6 +238,15 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
               onChange={(e) => setPassword(e.target.value)}
             />
             <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
+          </div>
+
+          <div className="flex justify-center my-2">
+            <HCaptcha
+              sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"
+              onVerify={setCaptchaToken}
+              onExpire={() => setCaptchaToken("")}
+              ref={captchaRef}
+            />
           </div>
 
           {debugInfo && <DebugInfo title="Debug Information" data={debugInfo} />}

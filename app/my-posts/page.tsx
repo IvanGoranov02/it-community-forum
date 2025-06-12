@@ -80,16 +80,16 @@ export default async function MyPostsPage() {
         </div>
 
         <Tabs defaultValue="all" className="mb-8">
-          <TabsList className="mb-4 grid w-full grid-cols-1 sm:grid-cols-3 h-auto">
-            <TabsTrigger value="all" className="text-xs sm:text-sm py-2">
+          <TabsList className="mb-4 flex w-full overflow-x-auto gap-1 sm:grid sm:grid-cols-3 sm:gap-0 h-auto rounded-lg bg-muted/40">
+            <TabsTrigger value="all" className="text-xs sm:text-sm py-2 px-3 whitespace-nowrap min-w-[90px] sm:min-w-0">
               <span className="hidden xs:inline">All Posts ({postsWithVotes.length})</span>
               <span className="xs:hidden">All ({postsWithVotes.length})</span>
             </TabsTrigger>
-            <TabsTrigger value="active" className="text-xs sm:text-sm py-2">
+            <TabsTrigger value="active" className="text-xs sm:text-sm py-2 px-3 whitespace-nowrap min-w-[90px] sm:min-w-0">
               <span className="hidden xs:inline">Active ({postsWithVotes.filter((p) => !p.is_archived).length})</span>
               <span className="xs:hidden">Active ({postsWithVotes.filter((p) => !p.is_archived).length})</span>
             </TabsTrigger>
-            <TabsTrigger value="archived" className="text-xs sm:text-sm py-2">
+            <TabsTrigger value="archived" className="text-xs sm:text-sm py-2 px-3 whitespace-nowrap min-w-[90px] sm:min-w-0">
               <span className="hidden xs:inline">Archived ({postsWithVotes.filter((p) => p.is_archived).length})</span>
               <span className="xs:hidden">Arch. ({postsWithVotes.filter((p) => p.is_archived).length})</span>
             </TabsTrigger>
@@ -115,28 +115,28 @@ export default async function MyPostsPage() {
                     return true
                   })
                   .map((post) => (
-                    <Card key={post.id} className="overflow-hidden">
-                      <CardHeader className="p-6 flex flex-row items-start justify-between">
+                    <Card key={post.id} className="overflow-hidden mb-3 shadow-sm border border-muted/40">
+                      <CardHeader className="p-3 sm:p-6 flex flex-row items-start justify-between">
                         <div>
-                          <CardTitle className="text-xl font-semibold mb-2">
+                          <CardTitle className="text-base sm:text-xl font-semibold mb-1 sm:mb-2">
                             <Link href={`/post/${post.slug}`} className="hover:text-primary transition-colors">
                               {post.title}
                             </Link>
                           </CardTitle>
                           <CardDescription className="flex flex-wrap items-center gap-2">
-                            <Link href={`/category/${post.category?.slug || "#"}`}>
-                              <Badge variant="secondary" className="hover:bg-secondary/80">
+                            <Link href={`/category/${post.category?.slug || "#"}`}> 
+                              <Badge variant="secondary" className="hover:bg-secondary/80 text-xs px-2 py-0.5">
                                 {post.category?.name || "Uncategorized"}
                               </Badge>
                             </Link>
-                            <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                            <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                               <Calendar className="h-4 w-4" />
                               <span>{formatDate(post.created_at)}</span>
                             </div>
                             {post.is_archived && (
                               <Badge
                                 variant="outline"
-                                className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300"
+                                className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300 text-xs px-2 py-0.5"
                               >
                                 Archived
                               </Badge>
@@ -145,35 +145,36 @@ export default async function MyPostsPage() {
                         </div>
                         <div className="flex space-x-2">
                           <Link href={`/post/edit/${post.id}`}>
-                            <Button variant="outline" size="sm">
-                              Edit
+                            <Button variant="outline" size="icon" className="h-8 w-8 p-0" aria-label="Edit post">
+                              <span className="sr-only">Edit</span>
+                              <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15.232 5.232l3.536 3.536M9 13l6.536-6.536a2 2 0 1 1 2.828 2.828L11.828 15.828a2 2 0 0 1-2.828 0L5 12.828a2 2 0 0 1 0-2.828L9 13z"></path></svg>
                             </Button>
                           </Link>
                         </div>
                       </CardHeader>
-                      <CardContent className="px-6 pb-4">
-                        <p className="text-muted-foreground line-clamp-2">
+                      <CardContent className="px-3 sm:px-6 pb-2 sm:pb-4">
+                        <p className="text-muted-foreground line-clamp-2 text-sm sm:text-base">
                           {post.content.replace(/<[^>]*>/g, "").substring(0, 200)}
                           {post.content.length > 200 ? "..." : ""}
                         </p>
                       </CardContent>
-                      <CardFooter className="px-6 py-4 bg-muted/20 flex justify-between border-t">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                      <CardFooter className="px-3 sm:px-6 py-2 sm:py-4 bg-muted/20 flex flex-col sm:flex-row sm:justify-between border-t gap-2 sm:gap-0">
+                        <div className="flex items-center gap-3 sm:gap-4">
+                          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                             <ThumbsUp className="h-4 w-4" />
                             <span>{post.total_votes || 0} votes</span>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                             <MessageSquare className="h-4 w-4" />
                             <span>{post.comments?.[0]?.count || 0} replies</span>
                           </div>
-                          <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <div className="flex items-center gap-1 text-xs sm:text-sm text-muted-foreground">
                             <Eye className="h-4 w-4" />
                             <span>{post.views || 0} views</span>
                           </div>
                         </div>
-                        <Link href={`/post/${post.slug}`}>
-                          <Button variant="ghost" size="sm">
+                        <Link href={`/post/${post.slug}`} className="w-full sm:w-auto">
+                          <Button variant="ghost" size="sm" className="w-full sm:w-auto">
                             View Post
                           </Button>
                         </Link>
