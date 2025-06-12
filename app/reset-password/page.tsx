@@ -106,60 +106,91 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12">
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle className="text-2xl">Set New Password</CardTitle>
-          <CardDescription>Enter your new password</CardDescription>
-        </CardHeader>
-        {!isSubmitted ? (
-          <form onSubmit={handleSubmit}>
+    <div className="container flex h-screen w-screen flex-col items-center justify-center">
+      {/* Add script to handle hash fragments */}
+      <script dangerouslySetInnerHTML={{ __html: `
+        if (window.location.hash) {
+          const hash = window.location.hash.substring(1);
+          const params = new URLSearchParams(hash);
+          const accessToken = params.get('access_token');
+          const refreshToken = params.get('refresh_token');
+          const type = params.get('type');
+          
+          if (accessToken && type === 'recovery') {
+            // Build the new URL with query parameters
+            const queryParams = new URLSearchParams();
+            queryParams.set('access_token', accessToken);
+            if (refreshToken) queryParams.set('refresh_token', refreshToken);
+            queryParams.set('type', type);
+            
+            // Replace the URL with query parameters instead of hash
+            window.history.replaceState(
+              null,
+              '',
+              '/reset-password?' + queryParams.toString()
+            );
+            
+            // Reload the page to apply the query parameters
+            window.location.reload();
+          }
+        }
+      ` }} />
+      
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle className="text-2xl">Set New Password</CardTitle>
+            <CardDescription>Enter your new password</CardDescription>
+          </CardHeader>
+          {!isSubmitted ? (
+            <form onSubmit={handleSubmit}>
+              <CardContent className="space-y-4">
+                {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
+                <div className="space-y-2">
+                  <Label htmlFor="password">New Password</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                  <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Input
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter className="flex flex-col space-y-4">
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? "Updating..." : "Update Password"}
+                </Button>
+              </CardFooter>
+            </form>
+          ) : (
             <CardContent className="space-y-4">
-              {error && <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">{error}</div>}
-              <div className="space-y-2">
-                <Label htmlFor="password">New Password</Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <p className="text-xs text-muted-foreground">Password must be at least 6 characters</p>
+              <div className="bg-green-50 p-4 rounded-md text-green-800">
+                <p className="font-medium">Password updated successfully!</p>
+                <p className="mt-2">Your password has been updated. You will be redirected to the login page.</p>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirm Password</Label>
-                <Input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  required
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
+              <div className="text-center mt-4">
+                <Link href="/login">
+                  <Button variant="outline">Back to Login</Button>
+                </Link>
               </div>
             </CardContent>
-            <CardFooter className="flex flex-col space-y-4">
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Updating..." : "Update Password"}
-              </Button>
-            </CardFooter>
-          </form>
-        ) : (
-          <CardContent className="space-y-4">
-            <div className="bg-green-50 p-4 rounded-md text-green-800">
-              <p className="font-medium">Password updated successfully!</p>
-              <p className="mt-2">Your password has been updated. You will be redirected to the login page.</p>
-            </div>
-            <div className="text-center mt-4">
-              <Link href="/login">
-                <Button variant="outline">Back to Login</Button>
-              </Link>
-            </div>
-          </CardContent>
-        )}
-      </Card>
+          )}
+        </Card>
+      </div>
     </div>
   )
 }
