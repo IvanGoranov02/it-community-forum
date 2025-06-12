@@ -197,7 +197,7 @@ export function AuthHashHandler() {
               console.log("Redirecting to home page...")
               // Use window.location.href for more reliable redirection
               setTimeout(() => {
-                window.location.href = "/?message=oauth-success"
+                window.location.href = "/"
               }, 1000) // Small delay to ensure everything is processed
             }
           } else {

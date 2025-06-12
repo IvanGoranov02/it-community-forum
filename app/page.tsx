@@ -39,8 +39,6 @@ export default async function Home({
   const categories: any = await getCategories()
   const recentPosts: any = await getRecentPosts(6)
   const popularPosts: any = await getPopularPosts(5)
-  const params = await searchParams
-  const message = params.message ? String(params.message) : undefined
 
   // Get notifications if user is logged in
   const notifications: any = user ? await getUserNotifications(10) : []
@@ -53,12 +51,6 @@ export default async function Home({
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {message === "oauth-success" && (
-        <div className="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-          <p className="font-medium">Welcome! You have successfully logged in with OAuth.</p>
-        </div>
-      )}
-      
       <header className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4 bg-muted/30 p-6 rounded-lg">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-primary">IT-Community</h1>
