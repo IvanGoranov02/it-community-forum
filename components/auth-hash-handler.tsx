@@ -107,13 +107,22 @@ export function AuthHashHandler() {
           const refreshToken = params.get("refresh_token")
           const expiresAt = params.get("expires_at")
           const tokenType = params.get("token_type")
+          const type = params.get("type")
           
           console.log("OAuth tokens found:", {
             hasAccessToken: !!accessToken,
             hasRefreshToken: !!refreshToken,
             tokenType,
-            expiresAt
+            expiresAt,
+            type
           })
+          
+          // Skip processing for password recovery - this should be handled by the reset-password page
+          if (type === "recovery") {
+            console.log("AuthHashHandler: Skipping password recovery flow")
+            setIsProcessing(false)
+            return
+          }
           
           // Check if this is an OAuth response
           if (accessToken && refreshToken && tokenType === "bearer") {

@@ -192,7 +192,7 @@ sum(42, 27); // 69
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <LoadingProvider>
             <AuthProvider initialUser={user}>
-              <AuthHashHandler />
+              {/* AuthHashHandler is not included in the layout */}
               {children}
               <CookieConsent />
               <ToastContainer
