@@ -29,6 +29,7 @@ export const SimpleCaptcha = forwardRef(function SimpleCaptcha(
   const reset = () => {
     if (widgetId !== null && window.hcaptcha) {
       try {
+        console.log('Resetting captcha widget:', widgetId);
         window.hcaptcha.reset(widgetId);
       } catch (e) {
         console.error('Error resetting hCaptcha:', e);
@@ -38,6 +39,7 @@ export const SimpleCaptcha = forwardRef(function SimpleCaptcha(
 
   const markTokenAsUsed = (token: string) => {
     if (token) {
+      console.log(`Marking token as used: ${token.substring(0, 10)}...`);
       usedTokensRef.current.add(token);
     }
   };
@@ -61,14 +63,19 @@ export const SimpleCaptcha = forwardRef(function SimpleCaptcha(
 
   // Load hCaptcha script
   useEffect(() => {
+    console.log('SimpleCaptcha useEffect running, initialized:', initialized.current);
+    
     if (typeof window === 'undefined' || initialized.current) return;
     initialized.current = true;
     
     // Create a container element with ID if needed
     if (!document.getElementById(containerId)) {
+      console.log('Creating container element with ID:', containerId);
       const captchaContainer = document.createElement('div');
       captchaContainer.id = containerId;
       document.body.appendChild(captchaContainer);
+    } else {
+      console.log('Container already exists:', containerId);
     }
 
     // Function to initialize hCaptcha
@@ -84,8 +91,11 @@ export const SimpleCaptcha = forwardRef(function SimpleCaptcha(
               if (onExpire) onExpire();
             }
           });
+          console.log('hCaptcha widget initialized with ID:', id);
           setWidgetId(id);
           setLoaded(true);
+        } else {
+          console.error('hCaptcha not available for rendering');
         }
       } catch (error) {
         console.error('Error initializing hCaptcha:', error);
@@ -94,26 +104,34 @@ export const SimpleCaptcha = forwardRef(function SimpleCaptcha(
 
     // Set up global callback
     window.onHCaptchaLoad = () => {
-      console.log('hCaptcha script loaded');
+      console.log('hCaptcha script loaded via global callback');
       setTimeout(initHCaptcha, 100); // Small delay to ensure DOM is ready
     };
 
     // Load script if not already loaded
     if (!document.querySelector('script[src^="https://js.hcaptcha.com/1/api.js"]')) {
+      console.log('Loading hCaptcha script');
       const script = document.createElement('script');
       script.src = 'https://js.hcaptcha.com/1/api.js?onload=onHCaptchaLoad&render=explicit';
       script.async = true;
       script.defer = true;
+      script.onerror = (e) => {
+        console.error('Error loading hCaptcha script:', e);
+      };
       document.head.appendChild(script);
     } else if (window.hcaptcha) {
       // Script already loaded
+      console.log('hCaptcha script already loaded, initializing');
       initHCaptcha();
+    } else {
+      console.warn('hCaptcha script exists but hcaptcha object not available');
     }
 
     return () => {
       // Clean up on unmount
       if (widgetId !== null && window.hcaptcha) {
         try {
+          console.log('Cleaning up hCaptcha widget:', widgetId);
           window.hcaptcha.reset(widgetId);
           window.hcaptcha.remove(widgetId);
         } catch (e) {

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LoginForm } from "@/components/login-form"
+import { useAuth } from "@/app/context/auth-context"
 
 interface LoginPageClientProps {
   user: any
@@ -11,15 +12,19 @@ interface LoginPageClientProps {
   error?: string
 }
 
-export function LoginPageClient({ user, redirectUrl, message, error }: LoginPageClientProps) {
+export function LoginPageClient({ user: initialUser, redirectUrl, message, error }: LoginPageClientProps) {
   const router = useRouter()
   const [hasHashFragment, setHasHashFragment] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const { user, refreshUser } = useAuth()
 
   useEffect(() => {
     setIsClient(true)
     setHasHashFragment(!!window.location.hash)
-  }, [])
+    
+    // Refresh user state when component mounts
+    refreshUser()
+  }, [refreshUser])
 
   useEffect(() => {
     // Only redirect if user is logged in and there's no hash fragment (OAuth tokens)
@@ -45,5 +50,5 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
     )
   }
 
-  return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
+  return <LoginForm redirectUrl={redirectUrl} message={message} error={error} refreshUser={refreshUser} />
 } 

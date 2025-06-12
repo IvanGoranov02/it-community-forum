@@ -23,10 +23,12 @@ export function LoginForm({
   redirectUrl = "/",
   message,
   error: initialError,
+  refreshUser,
 }: {
   redirectUrl?: string
   message?: string
   error?: string
+  refreshUser?: () => Promise<void>
 }) {
   const router = useRouter()
   const { toast } = useToast()
@@ -57,60 +59,78 @@ export function LoginForm({
     setCaptchaToken("")
 
     try {
-      const supabase = createBrowserClient()
-
-      // Only make ONE auth request
-      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-        options: {
+      console.log("Submitting login form with captcha token:", tokenToUse.substring(0, 10) + '...');
+      
+      // Use the API route instead of direct Supabase client
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          password,
           captchaToken: tokenToUse,
-        }
-      })
+        }),
+      });
 
-      if (authError) {
-        console.error("Login error:", authError)
-        if (authError.message.includes("Email not confirmed")) {
-          setErrorMessage("Please confirm your email before logging in.")
+      const data = await response.json();
+      
+      if (!response.ok) {
+        console.error("Login error:", data.error, data.details);
+        
+        if (data.error?.includes("Email not confirmed")) {
+          setErrorMessage("Please confirm your email before logging in.");
           // Optionally resend confirmation
+          const supabase = createBrowserClient();
           const { error: resendError } = await supabase.auth.resend({
             type: "signup",
             email,
             options: {
               emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || window.location.origin}/auth/callback`,
             },
-          })
+          });
+          
           if (!resendError) {
             toast({
               title: "Confirmation email resent",
               description: "Please check your inbox.",
-            })
+            });
           }
         } else {
-          setErrorMessage(authError.message)
+          setErrorMessage(data.error || "Login failed");
         }
+        
         // Reset captcha for new attempt
-        if (captchaRef.current) captchaRef.current.reset()
-        return
+        if (captchaRef.current) captchaRef.current.reset();
+        stopLoading();
+        return;
       }
 
-      if (authData.session) {
-        // Mark token as successfully used
-        if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse)
-        toast({
-          title: "Login successful",
-          description: "Welcome back!",
-        })
-        router.push(redirectUrl)
-        router.refresh()
+      // Success
+      console.log("Login successful");
+      
+      // Mark token as successfully used
+      if (captchaRef.current) captchaRef.current.markTokenAsUsed(tokenToUse);
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+      
+      // Refresh the page to ensure we have the latest session
+      window.location.href = redirectUrl;
+
+      if (refreshUser) {
+        await refreshUser();
       }
     } catch (error) {
-      console.error("Unexpected login error:", error)
-      setErrorMessage("An unexpected error occurred. Please try again.")
+      console.error("Unexpected login error:", error);
+      setErrorMessage("An unexpected error occurred. Please try again.");
       // Reset captcha on unexpected error
-      if (captchaRef.current) captchaRef.current.reset()
+      if (captchaRef.current) captchaRef.current.reset();
     } finally {
-      stopLoading()
+      stopLoading();
     }
   }
 
