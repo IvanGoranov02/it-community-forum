@@ -10,6 +10,7 @@ export function AuthHashHandler() {
   const router = useRouter()
   const { toast } = useToast()
   const [isProcessing, setIsProcessing] = useState(false)
+  const [hasProcessed, setHasProcessed] = useState(false)
 
   // Function to handle automatic account linking when OAuth fails due to existing email
   const handleAccountLinking = async (params: URLSearchParams) => {
@@ -35,8 +36,8 @@ export function AuthHashHandler() {
   }
 
   useEffect(() => {
-    // Only run in browser
-    if (typeof window === "undefined") return
+    // Only run in browser and if not already processed
+    if (typeof window === "undefined" || hasProcessed) return
 
     console.log("AuthHashHandler: Checking for hash fragment")
     console.log("Current URL:", window.location.href)
@@ -44,6 +45,7 @@ export function AuthHashHandler() {
 
     // Check if there's a hash fragment in the URL
     if (window.location.hash) {
+      setHasProcessed(true) // Mark as processed to prevent re-runs
       setIsProcessing(true)
       
       const handleHashParams = async () => {
@@ -264,7 +266,7 @@ export function AuthHashHandler() {
     } else {
       console.log("AuthHashHandler: No hash fragment found")
     }
-  }, [router, toast])
+  }, [router, toast, hasProcessed])
 
   // Show loading spinner while processing OAuth tokens
   if (isProcessing) {
