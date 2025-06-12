@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import HCaptcha from 'react-hcaptcha'
+import { NoStrictMode } from "@/components/NoStrictMode"
 
 // Add type declaration for window.hcaptcha
 declare global {
@@ -45,15 +46,17 @@ export function HCaptchaWrapper({ sitekey, onVerify, onExpire }: HCaptchaWrapper
   }, [])
 
   return (
-    <div className="flex justify-center my-2">
-      {ready && (
-        <HCaptcha
-          sitekey={sitekey}
-          onVerify={onVerify}
-          onExpire={onExpire || (() => onVerify(""))}
-          ref={captchaRef}
-        />
-      )}
-    </div>
+    <NoStrictMode>
+      <div className="flex justify-center my-2">
+        {ready && (
+          <HCaptcha
+            sitekey={sitekey}
+            onVerify={onVerify}
+            onExpire={onExpire || (() => onVerify(""))}
+            ref={captchaRef}
+          />
+        )}
+      </div>
+    </NoStrictMode>
   )
 } 
