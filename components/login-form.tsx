@@ -102,6 +102,9 @@ export function LoginForm({
         // Store the session in localStorage
         localStorage.setItem("supabase-auth", JSON.stringify(authData.session))
 
+        // Mark captcha token as used
+        if (captchaRef.current) captchaRef.current.markTokenAsUsed(captchaToken)
+
         // Also try to set the cookie via API for server-side auth
         try {
           const response = await fetch("/api/login", {

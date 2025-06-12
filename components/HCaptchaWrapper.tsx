@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef } from 'react'
+import React, { useState, useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react'
 import HCaptcha from 'react-hcaptcha'
 import { NoStrictMode } from "@/components/NoStrictMode"
 
@@ -23,13 +23,35 @@ export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
 ) {
   const [ready, setReady] = useState(false)
   const captchaRef = useRef<HCaptcha>(null)
+  const usedTokensRef = useRef<Set<string>>(new Set())
+  const [currentToken, setCurrentToken] = useState<string>("")
+
+  const resetCaptcha = useCallback(() => {
+    if (captchaRef.current) {
+      captchaRef.current.reset();
+    }
+    setCurrentToken("");
+  }, [])
+
+  const handleVerify = useCallback((token: string) => {
+    if (usedTokensRef.current.has(token)) {
+      console.warn('Token already used, resetting captcha');
+      resetCaptcha();
+      return;
+    }
+    setCurrentToken(token);
+    onVerify(token);
+  }, [onVerify, resetCaptcha])
+
+  const markTokenAsUsed = useCallback((token: string) => {
+    if (token) {
+      usedTokensRef.current.add(token);
+    }
+  }, [])
 
   useImperativeHandle(ref, () => ({
-    reset: () => {
-      if (captchaRef.current) {
-        captchaRef.current.reset();
-      }
-    }
+    reset: resetCaptcha,
+    markTokenAsUsed,
   }))
 
   useEffect(() => {
@@ -65,7 +87,7 @@ export const HCaptchaWrapper = forwardRef(function HCaptchaWrapper(
         {ready && (
           <HCaptcha
             sitekey={sitekey}
-            onVerify={onVerify}
+            onVerify={handleVerify}
             onExpire={onExpire || (() => onVerify(""))}
             ref={captchaRef}
           />

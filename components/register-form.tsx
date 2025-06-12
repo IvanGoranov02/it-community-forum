@@ -146,6 +146,9 @@ export function RegisterForm({ redirectUrl = "/" }: { redirectUrl?: string }) {
         description: "Please check your email to confirm your account.",
       })
 
+      // Mark captcha token as used
+      if (captchaRef.current) captchaRef.current.markTokenAsUsed(captchaToken)
+
       // Redirect to login page and stop loading
       router.push("/login?message=registration-success")
       stopLoading()
