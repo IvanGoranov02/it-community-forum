@@ -14,7 +14,6 @@ export async function GET(request: Request) {
     console.log("Using Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL)
     console.log("Service Role Key available:", !!process.env.SUPABASE_SERVICE_ROLE_KEY)
 
-    // Твърдо кодирани ключове за тестване
     const supabaseUrl = "https://ufxyqcpxjpnebsyiunam.supabase.co"
     const serviceRoleKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVmeHlxY3B4anBuZWJzeWl1bmFtIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NzUxNzU4NSwiZXhwIjoyMDYzMDkzNTg1fQ.faVPLApKGZbXfLrqMM9s2wHwjgW68x8syMCnuB2PZjA"
 
