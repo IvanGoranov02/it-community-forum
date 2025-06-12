@@ -66,8 +66,37 @@ export default function ResetPasswordPage() {
 
     try {
       const supabase = createBrowserClient()
-      let updateUserOpts = { password }
-      const { error } = await supabase.auth.updateUser(updateUserOpts)
+      
+      // First set the session with the access token before updating the password
+      if (accessToken && refreshToken) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        
+        if (sessionError) {
+          setError("Invalid or expired password reset token. Please request a new password reset link.")
+          toast({
+            title: "Error",
+            description: "Invalid or expired password reset token. Please request a new password reset link.",
+            variant: "destructive",
+          })
+          setIsLoading(false)
+          return
+        }
+      } else if (!accessToken) {
+        setError("Auth session missing! Please request a new password reset link.")
+        toast({
+          title: "Error",
+          description: "Auth session missing! Please request a new password reset link.",
+          variant: "destructive",
+        })
+        setIsLoading(false)
+        return
+      }
+      
+      // Now update the password
+      const { error } = await supabase.auth.updateUser({ password })
 
       if (error) {
         setError(error.message)
@@ -77,13 +106,6 @@ export default function ResetPasswordPage() {
           variant: "destructive",
         })
       } else {
-        // Set session only after password is updated
-        if (accessToken && refreshToken) {
-          await supabase.auth.setSession({
-            access_token: accessToken,
-            refresh_token: refreshToken,
-          })
-        }
         setIsSubmitted(true)
         toast({
           title: "Password updated",
