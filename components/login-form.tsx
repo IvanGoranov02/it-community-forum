@@ -35,7 +35,7 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    startLoading("Влизане в системата...")
+    startLoading("Login...")
     setErrorMessage("")
     setDebugInfo(null)
 
@@ -208,7 +208,7 @@ export function LoginForm({
 
   // OAuth login handler
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
-    startLoading(`Влизане с ${provider === 'google' ? 'Google' : 'GitHub'}...`)
+    startLoading(`Login with ${provider === 'google' ? 'Google' : 'GitHub'}...`)
     setErrorMessage("")
 
     try {
