@@ -13,15 +13,23 @@ export function AuthHashHandler() {
     // Only run in browser
     if (typeof window === "undefined") return
 
+    console.log("AuthHashHandler: Checking for hash fragment")
+    console.log("Current URL:", window.location.href)
+    console.log("Hash fragment:", window.location.hash)
+
     // Check if there's a hash fragment in the URL
     if (window.location.hash) {
       const handleHashParams = async () => {
         try {
+          console.log("AuthHashHandler: Processing hash fragment")
+          
           // Remove the # character
           const hash = window.location.hash.substring(1)
+          console.log("Hash content:", hash)
           
           // Parse the hash fragment as query parameters
           const params = new URLSearchParams(hash)
+          console.log("Parsed params:", Object.fromEntries(params.entries()))
           
           // Check for OAuth errors first
           const error = params.get("error")
@@ -60,8 +68,17 @@ export function AuthHashHandler() {
           const expiresAt = params.get("expires_at")
           const tokenType = params.get("token_type")
           
+          console.log("OAuth tokens found:", {
+            hasAccessToken: !!accessToken,
+            hasRefreshToken: !!refreshToken,
+            tokenType,
+            expiresAt
+          })
+          
           // Check if this is an OAuth response
           if (accessToken && refreshToken && tokenType === "bearer") {
+            console.log("AuthHashHandler: Valid OAuth tokens found, setting session")
+            
             // Get Supabase client
             const supabase = createBrowserClient()
             
@@ -81,6 +98,8 @@ export function AuthHashHandler() {
               return
             }
 
+            console.log("Session set successfully:", data.session?.user?.email)
+
             if (data.session) {
               // Create a smaller session object for storage
               const storageSession = {
@@ -95,9 +114,11 @@ export function AuthHashHandler() {
 
               // Store the session in localStorage for client-side auth
               localStorage.setItem("supabase-auth", JSON.stringify(storageSession))
+              console.log("Session stored in localStorage")
               
               // Also set the cookie via API for server-side auth
               try {
+                console.log("Setting server-side cookie...")
                 await fetch("/api/set-auth-cookie", {
                   method: "POST",
                   headers: {
@@ -105,6 +126,7 @@ export function AuthHashHandler() {
                   },
                   body: JSON.stringify({ session: data.session })
                 })
+                console.log("Server-side cookie set successfully")
               } catch (error) {
                 console.warn("Failed to set server-side cookie, but client auth should still work", error)
               }
@@ -120,10 +142,13 @@ export function AuthHashHandler() {
                 window.history.replaceState(null, "", window.location.pathname + window.location.search)
               }
               
+              console.log("Redirecting to home page...")
               // Redirect to home page with success message
               router.push("/?message=oauth-success")
               router.refresh()
             }
+          } else {
+            console.log("AuthHashHandler: No valid OAuth tokens found in hash")
           }
         } catch (error) {
           console.error("Error processing auth hash:", error)
@@ -136,6 +161,8 @@ export function AuthHashHandler() {
       }
       
       handleHashParams()
+    } else {
+      console.log("AuthHashHandler: No hash fragment found")
     }
   }, [router, toast])
 

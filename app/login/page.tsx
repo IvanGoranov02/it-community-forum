@@ -1,6 +1,7 @@
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { LoginForm } from "@/components/login-form"
+import { AuthHashHandler } from "@/components/auth-hash-handler"
 import { getUser } from "@/app/actions/auth"
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default async function LoginPage({
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
+      <AuthHashHandler />
       <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
     </div>
   )
