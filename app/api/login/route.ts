@@ -4,20 +4,27 @@ import { NextResponse } from "next/server"
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json()
+    const { email, password, captchaToken } = await request.json()
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required" }, { status: 400 })
+    }
+
+    if (!captchaToken) {
+      return NextResponse.json({ error: "Captcha token is required" }, { status: 400 })
     }
 
     console.log(`Attempting login for email: ${email}`)
 
     const supabase = createServerClient()
 
-    // Try to sign in with the provided credentials
+    // Try to sign in with the provided credentials and captchaToken
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: {
+        captchaToken,
+      },
     })
 
     if (error) {
