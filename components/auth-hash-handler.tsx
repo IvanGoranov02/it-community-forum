@@ -1,15 +1,42 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { createBrowserClient } from "@/lib/supabase"
-import { toast } from 'react-toastify'
+import { useToast } from "@/hooks/use-toast"
 import { Loader2 } from "lucide-react"
+import { useLoading } from "@/app/context/loading-context"
 
 export function AuthHashHandler() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const { toast } = useToast()
+  const { startLoading, stopLoading } = useLoading()
   const [isProcessing, setIsProcessing] = useState(false)
   const [hasProcessed, setHasProcessed] = useState(false)
+
+  // Check for auto login after email confirmation
+  useEffect(() => {
+    const message = searchParams?.get("message")
+    const autoLogin = searchParams?.get("auto_login")
+    
+    // If this is an email confirmation with auto login
+    if (message === "email-confirmed" && autoLogin === "true") {
+      // Remove the query parameters and show toast
+      if (window.history.replaceState) {
+        window.history.replaceState(
+          null, 
+          "", 
+          window.location.pathname
+        )
+      }
+      
+      toast({
+        title: "Email Confirmed",
+        description: "Your email has been confirmed. You are now logged in.",
+      })
+    }
+  }, [searchParams, toast])
 
   // Function to handle automatic account linking when OAuth fails due to existing email
   const handleAccountLinking = async (params: URLSearchParams) => {
@@ -17,7 +44,11 @@ export function AuthHashHandler() {
     
     // Instead of trying to automatically link (which requires manual linking to be enabled),
     // we'll provide better user guidance
-    toast.error("Account already exists. Please sign in with your email and password first, then you can link your OAuth accounts in your profile settings.")
+    toast({
+      title: "Account already exists",
+      description: "Please sign in with your email and password first, then you can link your OAuth accounts in your profile settings.",
+      variant: "destructive",
+    })
     
     // Clear the hash fragment and redirect to login with a helpful message
     if (window.history.replaceState) {
@@ -42,6 +73,7 @@ export function AuthHashHandler() {
     if (window.location.hash) {
       setHasProcessed(true) // Mark as processed to prevent re-runs
       setIsProcessing(true)
+      startLoading("Processing login...")
       
       const handleHashParams = async () => {
         try {
@@ -77,7 +109,10 @@ export function AuthHashHandler() {
             
             if (shouldTryAutoLink) {
               // Show a different message for auto-linking attempt
-              toast.info(userFriendlyMessage)
+              toast({
+                title: "Account linking",
+                description: userFriendlyMessage,
+              })
               
               // Try to handle the account linking automatically
               try {
@@ -90,7 +125,11 @@ export function AuthHashHandler() {
               }
             }
             
-            toast.error(`OAuth error: ${userFriendlyMessage}`)
+            toast({
+              title: "OAuth Error",
+              description: userFriendlyMessage,
+              variant: "destructive",
+            })
             
             // Clear the hash fragment and redirect to login
             if (window.history.replaceState) {
@@ -98,6 +137,7 @@ export function AuthHashHandler() {
             }
             
             setIsProcessing(false)
+            stopLoading()
             router.push("/login?error=oauth-failed")
             return
           }
@@ -130,8 +170,13 @@ export function AuthHashHandler() {
             
             if (error) {
               console.error("Error setting session:", error)
-              toast.error("Authentication error. Please try again.")
+              toast({
+                title: "Authentication Error",
+                description: "Please try again.",
+                variant: "destructive",
+              })
               setIsProcessing(false)
+              stopLoading()
               return
             }
 
@@ -215,7 +260,10 @@ export function AuthHashHandler() {
               }
 
               // Show success message
-              toast.success("Welcome! You have successfully logged in with OAuth.")
+              toast({
+                title: "Login Successful",
+                description: "Welcome! You have successfully logged in.",
+              })
               
               // Clear the hash fragment from the URL
               if (window.history.replaceState) {
@@ -224,18 +272,23 @@ export function AuthHashHandler() {
               
               console.log("Redirecting to home page...")
               // Use window.location.href for more reliable redirection
-              setTimeout(() => {
-                window.location.href = "/"
-              }, 1000) // Small delay to ensure everything is processed
+              stopLoading()
+              window.location.href = "/"
             }
           } else {
             console.log("AuthHashHandler: No valid OAuth tokens found in hash")
             setIsProcessing(false)
+            stopLoading()
           }
         } catch (error) {
           console.error("Error processing auth hash:", error)
-          toast.error("Authentication error. Please try again.")
+          toast({
+            title: "Authentication Error",
+            description: "Please try again.",
+            variant: "destructive",
+          })
           setIsProcessing(false)
+          stopLoading()
         }
       }
       
@@ -243,25 +296,22 @@ export function AuthHashHandler() {
     } else {
       console.log("AuthHashHandler: No hash fragment found")
     }
-  }, [router, toast, hasProcessed])
+  }, [router, toast, hasProcessed, startLoading, stopLoading])
 
   // Show loading spinner while processing OAuth tokens
   if (isProcessing) {
     return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div className="bg-card p-8 rounded-lg shadow-lg border flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <div className="text-center">
-            <h3 className="text-lg font-semibold">Processing login...</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Please wait while we complete your OAuth authentication
-            </p>
-          </div>
+      <div className="fixed inset-0 flex items-center justify-center bg-background/80 z-50">
+        <div className="text-center space-y-4 p-8 bg-card rounded-lg shadow-lg border">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <h3 className="text-lg font-medium">Please wait</h3>
+          <p className="text-sm text-muted-foreground max-w-md">
+            We are completing your authentication. This will only take a moment...
+          </p>
         </div>
       </div>
     )
   }
 
-  // This component doesn't render anything when not processing
   return null
 } 

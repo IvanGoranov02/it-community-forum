@@ -120,8 +120,8 @@ export async function GET(request: Request) {
           // Email change flow
           return NextResponse.redirect(`${requestUrl.origin}/profile/edit?message=email-change-success`)
         } else if (type === "signup") {
-          // Email confirmation after signup
-          return NextResponse.redirect(`${requestUrl.origin}/login?message=email-confirmed`)
+          // Email confirmation after signup - Auto login the user and redirect to home
+          return NextResponse.redirect(`${requestUrl.origin}/?message=email-confirmed&auto_login=true`)
         } else {
           // Default case: regular login or OAuth callback
           return NextResponse.redirect(`${requestUrl.origin}/?message=login-success`)
