@@ -45,6 +45,9 @@ export function HCaptchaWrapper({ sitekey, onVerify, onExpire }: HCaptchaWrapper
     return () => clearInterval(interval)
   }, [])
 
+  if (process.env.NODE_ENV === 'development') {
+    return <div className="text-center text-muted-foreground">hCaptcha is disabled in development mode</div>;
+  }
   return (
     <NoStrictMode>
       <div className="flex justify-center my-2">
