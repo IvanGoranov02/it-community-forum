@@ -7,13 +7,13 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { createBrowserClient } from "@/lib/supabase"
 import { DebugInfo } from "@/components/debug-info"
 import { useLoading } from "@/app/context/loading-context"
-import HCaptcha from "react-hcaptcha"
+import { HCaptchaWrapper } from "@/components/HCaptchaWrapper"
 
 export function LoginForm({
   redirectUrl = "/",
@@ -34,7 +34,6 @@ export function LoginForm({
   const [magicEmail, setMagicEmail] = useState("")
   const [magicLoading, setMagicLoading] = useState(false)
   const [captchaToken, setCaptchaToken] = useState("")
-  const captchaRef = useRef<HCaptcha>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -330,11 +329,10 @@ export function LoginForm({
 
           {/* Add hCaptcha */}
           <div className="flex justify-center my-2">
-            <HCaptcha
+            <HCaptchaWrapper
               sitekey="960a1f78-2ba6-4740-b518-c0ac6d368d24"
               onVerify={setCaptchaToken}
               onExpire={() => setCaptchaToken("")}
-              ref={captchaRef}
             />
           </div>
 
