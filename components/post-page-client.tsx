@@ -138,7 +138,7 @@ export function PostPageClient({ post, comments, user, isBookmarked, tagsData, s
       <div id="comment-form" className="mb-6">
         {user ? (
           <CommentForm 
-            postId={post.id} 
+        postId={post.id} 
             slug={slug} 
             replyToUsername={replyingTo} 
             onCommentSubmitted={clearReplyState} 
@@ -169,11 +169,11 @@ export function PostPageClient({ post, comments, user, isBookmarked, tagsData, s
       <div className="space-y-4">
         <Comments 
           comments={comments} 
-          slug={slug} 
-          user={user}
-          replyingTo={replyingTo}
+        slug={slug} 
+        user={user}
+        replyingTo={replyingTo}
           onReply={handleReply}
-        />
+      />
       </div>
     </>
   )

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { LoginForm } from "@/components/login-form"
 import { useAuth } from "@/app/context/auth-context"
-import { Loader2 } from "lucide-react"
+import { useLoading } from "@/app/context/loading-context"
 
 interface LoginPageClientProps {
   user: any
@@ -20,6 +20,7 @@ export function LoginPageClient({ user: initialUser, redirectUrl, message, error
   const [isClient, setIsClient] = useState(false)
   const [isConfirmingEmail, setIsConfirmingEmail] = useState(false)
   const { user, refreshUser } = useAuth()
+  const { startLoading, stopLoading } = useLoading()
 
   useEffect(() => {
     setIsClient(true)
@@ -34,14 +35,15 @@ export function LoginPageClient({ user: initialUser, redirectUrl, message, error
       // Refresh user state and redirect after a short delay
       refreshUser().then(() => {
         setTimeout(() => {
+          stopLoading() // Make sure to stop loading if it was started
           router.push("/")
-        }, 1000)
+        }, 500) // Reduced delay
       })
     } else {
       // Refresh user state when component mounts (normal flow)
       refreshUser()
     }
-  }, [refreshUser, router, searchParams])
+  }, [refreshUser, router, searchParams, stopLoading])
 
   useEffect(() => {
     // Only redirect if user is logged in and there's no hash fragment (OAuth tokens)
@@ -52,36 +54,8 @@ export function LoginPageClient({ user: initialUser, redirectUrl, message, error
     }
   }, [user, redirectUrl, router, hasHashFragment, isClient, isConfirmingEmail])
 
-  // Show loading while processing email confirmation
-  if (isConfirmingEmail) {
-    return (
-      <div className="container flex h-screen w-screen flex-col items-center justify-center">
-        <div className="text-center space-y-4 max-w-md">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <h2 className="text-xl font-medium">Email Confirmed!</h2>
-          <p className="text-muted-foreground">
-            Your email has been confirmed and you are now being logged in...
-          </p>
-        </div>
-      </div>
-    )
-  }
-
-  // Show loading while processing OAuth tokens
-  if (isClient && user && hasHashFragment) {
-    console.log("User logged in but processing OAuth tokens...")
-    return (
-      <div className="container flex h-screen w-screen flex-col items-center justify-center">
-        <div className="text-center space-y-4 max-w-md">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto" />
-          <h2 className="text-xl font-medium">Completing login...</h2>
-          <p className="text-muted-foreground">
-            Please wait while we complete your authentication.
-          </p>
-        </div>
-      </div>
-    )
-  }
+  // We don't need to show our own loading spinners anymore since we use the global loading overlay
+  // This simplifies the component and provides a consistent UX
 
   return <LoginForm redirectUrl={redirectUrl} message={message} error={error} refreshUser={refreshUser} />
 } 

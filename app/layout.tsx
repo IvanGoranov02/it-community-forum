@@ -10,7 +10,6 @@ import { Analytics } from "@vercel/analytics/next"
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import "./globals.css"
-import { GlobalLoader } from "../src/components/GlobalLoader"
 
 // Mark this layout as dynamic
 export const dynamic = "force-dynamic"
@@ -159,7 +158,6 @@ export default async function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <GlobalLoader />
         <div className="terminal-bg" aria-hidden="true">
           <div className="terminal-window">
             <div className="terminal-bar">

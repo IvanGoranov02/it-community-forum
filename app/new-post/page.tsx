@@ -14,28 +14,30 @@ import { TagInput } from "@/components/tag-input"
 import { createPostWithTags } from "@/app/actions/posts"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/app/context/auth-context"
-import { toast } from "@/hooks/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { LoadingSpinner } from "@/components/ui/loading-spinner"
+import { useLoading } from "@/app/context/loading-context"
 
 export default function NewPostPage() {
   const [categories, setCategories] = useState([])
   const [tags, setTags] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isPageLoading, setIsPageLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedTags, setSelectedTags] = useState([])
   const router = useRouter()
   const { user } = useAuth()
+  const { toast } = useToast()
+  const { startLoading, stopLoading } = useLoading()
 
   useEffect(() => {
     // Redirect if not logged in
-    if (!user && !isLoading) {
+    if (!user && !isPageLoading) {
       router.push("/login?redirect=/new-post")
     }
-  }, [user, isLoading, router])
+  }, [user, isPageLoading, router])
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true)
       try {
         const supabase = createBrowserClient()
 
@@ -79,12 +81,12 @@ export default function NewPostPage() {
           variant: "destructive",
         })
       } finally {
-        setIsLoading(false)
+        setIsPageLoading(false)
       }
     }
 
     fetchData()
-  }, [])
+  }, [toast])
 
   const handleTagChange = (tags) => {
     setSelectedTags(tags)
@@ -97,6 +99,8 @@ export default function NewPostPage() {
 
   const handleSubmit = async (formData: FormData) => {
     setIsSubmitting(true)
+    startLoading("Създаване на пост...")
+    
     try {
       const result = await createPostWithTags(formData)
 
@@ -122,15 +126,16 @@ export default function NewPostPage() {
       })
     } finally {
       setIsSubmitting(false)
+      stopLoading()
     }
   }
 
-  if (isLoading) {
+  if (isPageLoading) {
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="text-center py-12">
           <LoadingSpinner size="lg" />
-          <p className="mt-4 text-muted-foreground">Зареждане...</p>
+          <p className="mt-4 text-muted-foreground">Зареждане на формуляра...</p>
         </div>
       </div>
     )
@@ -200,14 +205,7 @@ export default function NewPostPage() {
               </Button>
             </Link>
             <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <LoadingSpinner className="mr-2" />
-                  Създаване...
-                </>
-              ) : (
-                "Създай пост"
-              )}
+              {isSubmitting ? "Създаване..." : "Създай пост"}
             </Button>
           </CardFooter>
         </form>

@@ -192,17 +192,17 @@ export function Comments({ comments, slug, user, replyingTo, onReply }: any) {
               <div className="flex items-center gap-1">
                 {/* Desktop: Show all buttons */}
                 <div className="hidden sm:flex items-center gap-1">
-                  <ShareDialog url={`/post/${slug}#comment-${comment.id}`} title="Share this comment">
+                <ShareDialog url={`/post/${slug}#comment-${comment.id}`} title="Share this comment">
                     <Button variant="ghost" size="sm" className="text-xs">
                       <Share2 className="h-3 w-3 md:h-4 md:w-4 mr-1" />
-                      Share
-                    </Button>
-                  </ShareDialog>
-                  <ReportDialog contentType="comment" contentId={comment.id}>
+                    Share
+                  </Button>
+                </ShareDialog>
+                <ReportDialog contentType="comment" contentId={comment.id}>
                     <Button variant="ghost" size="sm">
                       <Flag className="h-3 w-3 md:h-4 md:w-4" />
-                    </Button>
-                  </ReportDialog>
+                  </Button>
+                </ReportDialog>
                 </div>
                 
                 {/* Mobile: Dropdown menu */}

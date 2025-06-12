@@ -11,8 +11,7 @@ export function AuthHashHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { toast } = useToast()
-  const { startLoading, stopLoading } = useLoading()
-  const [isProcessing, setIsProcessing] = useState(false)
+  const { startLoading, stopLoading, isLoading } = useLoading()
   const [hasProcessed, setHasProcessed] = useState(false)
 
   // Check for auto login after email confirmation
@@ -55,7 +54,7 @@ export function AuthHashHandler() {
       window.history.replaceState(null, "", window.location.pathname + window.location.search)
     }
     
-    setIsProcessing(false)
+    stopLoading()
     router.push("/login?message=account-exists")
     
     throw new Error("User needs to sign in with existing account first")
@@ -72,8 +71,11 @@ export function AuthHashHandler() {
     // Check if there's a hash fragment in the URL
     if (window.location.hash) {
       setHasProcessed(true) // Mark as processed to prevent re-runs
-      setIsProcessing(true)
-      startLoading("Processing login...")
+      
+      // Only start loading if not already loading
+      if (!isLoading) {
+        startLoading("Processing login...")
+      }
       
       const handleHashParams = async () => {
         try {
@@ -136,7 +138,6 @@ export function AuthHashHandler() {
               window.history.replaceState(null, "", window.location.pathname + window.location.search)
             }
             
-            setIsProcessing(false)
             stopLoading()
             router.push("/login?error=oauth-failed")
             return
@@ -175,7 +176,6 @@ export function AuthHashHandler() {
                 description: "Please try again.",
                 variant: "destructive",
               })
-              setIsProcessing(false)
               stopLoading()
               return
             }
@@ -271,13 +271,12 @@ export function AuthHashHandler() {
               }
               
               console.log("Redirecting to home page...")
-              // Use window.location.href for more reliable redirection
+              // Stop loading and redirect
               stopLoading()
               window.location.href = "/"
             }
           } else {
             console.log("AuthHashHandler: No valid OAuth tokens found in hash")
-            setIsProcessing(false)
             stopLoading()
           }
         } catch (error) {
@@ -287,7 +286,6 @@ export function AuthHashHandler() {
             description: "Please try again.",
             variant: "destructive",
           })
-          setIsProcessing(false)
           stopLoading()
         }
       }
@@ -296,22 +294,7 @@ export function AuthHashHandler() {
     } else {
       console.log("AuthHashHandler: No hash fragment found")
     }
-  }, [router, toast, hasProcessed, startLoading, stopLoading])
-
-  // Show loading spinner while processing OAuth tokens
-  if (isProcessing) {
-    return (
-      <div className="fixed inset-0 flex items-center justify-center bg-background/80 z-50">
-        <div className="text-center space-y-4 p-8 bg-card rounded-lg shadow-lg border">
-          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-          <h3 className="text-lg font-medium">Please wait</h3>
-          <p className="text-sm text-muted-foreground max-w-md">
-            We are completing your authentication. This will only take a moment...
-          </p>
-        </div>
-      </div>
-    )
-  }
+  }, [router, toast, hasProcessed, startLoading, stopLoading, isLoading])
 
   return null
 } 

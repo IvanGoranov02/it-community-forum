@@ -35,15 +35,15 @@ export default async function EditProfilePage() {
       </div>
 
       <div className="space-y-8">
-        <ProfileEditForm
-          user={{
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            bio: profile?.bio || undefined,
-            avatar: profile?.avatar_url || undefined,
-          }}
-        />
+      <ProfileEditForm
+        user={{
+          id: user.id,
+          username: user.username,
+          name: user.name,
+          bio: profile?.bio || undefined,
+          avatar: profile?.avatar_url || undefined,
+        }}
+      />
         
         <OAuthAccountsManager />
       </div>
