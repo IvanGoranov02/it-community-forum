@@ -259,7 +259,7 @@ export function LoginForm({
             <div className="bg-green-100 border border-green-400 text-black px-4 py-3 rounded">
               <p>
                 {message === "registration-success"
-                  ? "Registration successful! You can now log in."
+                  ? "Registration successful! Please confirm your email and log in."
                   : message}
               </p>
             </div>
