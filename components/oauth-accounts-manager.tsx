@@ -179,21 +179,24 @@ export function OAuthAccountsManager() {
             <p className="text-sm text-muted-foreground">No OAuth accounts linked</p>
           ) : (
             identities.map((identity) => (
-              <div key={identity.id} className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
-                  {getProviderIcon(identity.provider)}
-                                     <div>
-                     <p className="font-medium capitalize">{identity.provider}</p>
-                     {identity.identity_data?.email && (
-                       <p className="text-sm text-muted-foreground">{identity.identity_data.email}</p>
-                     )}
-                   </div>
-                  <Badge variant="secondary">Connected</Badge>
+              <div key={identity.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
+                  <div className="flex items-center gap-2">
+                    {getProviderIcon(identity.provider)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium capitalize break-all">{identity.provider}</p>
+                    {identity.identity_data?.email && (
+                      <p className="text-sm text-muted-foreground break-all">{identity.identity_data.email}</p>
+                    )}
+                  </div>
+                  <Badge variant="secondary" className="w-fit">Connected</Badge>
                 </div>
                 {identities.length > 1 && (
                   <Button
                     variant="outline"
                     size="sm"
+                    className="w-full sm:w-auto"
                     onClick={() => unlinkAccount(identity)}
                   >
                     <Unlink className="h-4 w-4 mr-1" />
@@ -221,17 +224,18 @@ export function OAuthAccountsManager() {
           
           <div className="grid grid-cols-1 gap-3">
             {!isProviderLinked('google') && (
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
                   {getProviderIcon('google')}
-                  <div>
-                    <p className="font-medium">Google</p>
-                    <p className="text-sm text-muted-foreground">Link your Google account</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium break-all">Google</p>
+                    <p className="text-sm text-muted-foreground break-all">Link your Google account</p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto"
                   onClick={() => linkOAuthAccount('google')}
                   disabled={linkingProvider === 'google'}
                 >
@@ -246,17 +250,18 @@ export function OAuthAccountsManager() {
             )}
 
             {!isProviderLinked('github') && (
-              <div className="flex items-center justify-between p-3 border rounded-lg">
-                <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 p-3 border rounded-lg">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full">
                   {getProviderIcon('github')}
-                  <div>
-                    <p className="font-medium">GitHub</p>
-                    <p className="text-sm text-muted-foreground">Link your GitHub account</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium break-all">GitHub</p>
+                    <p className="text-sm text-muted-foreground break-all">Link your GitHub account</p>
                   </div>
                 </div>
                 <Button
                   variant="outline"
                   size="sm"
+                  className="w-full sm:w-auto"
                   onClick={() => linkOAuthAccount('github')}
                   disabled={linkingProvider === 'github'}
                 >
