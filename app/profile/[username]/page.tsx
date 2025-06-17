@@ -42,17 +42,35 @@ export default async function ProfilePage({ params }: Props) {
     notFound()
   }
 
-  // Get user posts
+  // Get user posts with proper vote calculation
   const { data: posts } = await supabase
     .from("posts")
-    .select("id, title, created_at, views, votes")
+    .select("id, title, slug, created_at, views")
     .eq("author_id", profile.id)
     .order("created_at", { ascending: false })
+
+  // Calculate total votes for each post
+  const postsWithVotes = await Promise.all(
+    (posts || []).map(async (post) => {
+      const { data: votesData, error: votesError } = await supabase
+        .from("post_votes")
+        .select("vote_type")
+        .eq("post_id", post.id)
+
+      if (votesError) {
+        console.error(`Error fetching votes for post ${post.id}:`, votesError)
+        return { ...post, total_votes: 0 }
+      }
+
+      const totalVotes = votesData.reduce((sum, vote) => sum + vote.vote_type, 0)
+      return { ...post, total_votes: totalVotes }
+    })
+  )
 
   // Get user comments
   const { data: comments } = await supabase
     .from("comments")
-    .select("id, content, created_at, post_id, posts(title)")
+    .select("id, content, created_at, post_id, posts(title, slug)")
     .eq("author_id", profile.id)
     .order("created_at", { ascending: false })
     .limit(5)
@@ -96,7 +114,7 @@ export default async function ProfilePage({ params }: Props) {
 
           <div className="grid grid-cols-3 gap-4 text-center">
             <div className="bg-muted rounded-md p-3">
-              <div className="text-2xl font-bold">{posts?.length || 0}</div>
+              <div className="text-2xl font-bold">{postsWithVotes?.length || 0}</div>
               <div className="text-sm text-muted-foreground">Posts</div>
             </div>
             <div className="bg-muted rounded-md p-3">
@@ -104,7 +122,7 @@ export default async function ProfilePage({ params }: Props) {
               <div className="text-sm text-muted-foreground">Comments</div>
             </div>
             <div className="bg-muted rounded-md p-3">
-              <div className="text-2xl font-bold">{posts?.reduce((sum, post) => sum + (post.votes || 0), 0) || 0}</div>
+              <div className="text-2xl font-bold">{postsWithVotes?.reduce((sum, post) => sum + (post.total_votes || 0), 0) || 0}</div>
               <div className="text-sm text-muted-foreground">Reputation</div>
             </div>
           </div>
@@ -117,17 +135,17 @@ export default async function ProfilePage({ params }: Props) {
             <CardTitle>Recent Posts</CardTitle>
           </CardHeader>
           <CardContent>
-            {posts && posts.length > 0 ? (
+            {postsWithVotes && postsWithVotes.length > 0 ? (
               <ul className="space-y-2">
-                {posts.slice(0, 5).map((post) => (
+                {postsWithVotes.slice(0, 5).map((post) => (
                   <li key={post.id} className="border-b pb-2 last:border-0">
-                    <Link href={`/post/${post.id}`} className="hover:underline font-medium">
+                    <Link href={`/post/${post.slug}`} className="hover:underline font-medium">
                       {post.title}
                     </Link>
                     <div className="flex text-sm text-muted-foreground gap-4">
                       <span>{formatDate(post.created_at)}</span>
                       <span>{post.views || 0} views</span>
-                      <span>{post.votes || 0} votes</span>
+                      <span>{post.total_votes || 0} votes</span>
                     </div>
                   </li>
                 ))}
@@ -152,7 +170,7 @@ export default async function ProfilePage({ params }: Props) {
                       <span>{formatDate(comment.created_at)}</span>
                       <span>on</span>
                       <Link href={`/post/${comment.post_id}`} className="hover:underline truncate">
-                        {comment.posts?.title}
+                        {(comment.posts as any)?.title || "Unknown Post"}
                       </Link>
                     </div>
                   </li>
