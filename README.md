@@ -163,11 +163,7 @@ Frontend Developer & Student
 
 ---
 
-## 📄 License
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
-
----
 
 ## 🙏 Acknowledgements
 
