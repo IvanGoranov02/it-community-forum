@@ -248,6 +248,7 @@ export interface Database {
           link: string | null
           is_read: boolean
           created_at: string
+          type: string
         }
         Insert: {
           id?: string
@@ -256,6 +257,7 @@ export interface Database {
           link?: string | null
           is_read?: boolean
           created_at?: string
+          type?: string
         }
         Update: {
           id?: string
@@ -264,6 +266,7 @@ export interface Database {
           link?: string | null
           is_read?: boolean
           created_at?: string
+          type?: string
         }
       }
     }

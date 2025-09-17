@@ -85,7 +85,13 @@ export async function getUserNotifications(limit = 10) {
     return []
   }
 
-  return data
+  // Ensure all notifications have required fields with defaults
+  return data?.map(notification => ({
+    ...notification,
+    type: notification.type || 'system',
+    link: notification.link || null,
+    is_read: notification.is_read || false,
+  })) || []
 }
 
 export async function getUnreadNotificationsCount() {

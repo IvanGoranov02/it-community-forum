@@ -38,61 +38,72 @@ export function NotificationsDropdown({
   initialNotifications,
   initialUnreadCount,
 }: NotificationsDropdownProps) {
-  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
-  const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
+  const [notifications, setNotifications] = useState<Notification[]>(initialNotifications || [])
+  const [unreadCount, setUnreadCount] = useState(initialUnreadCount || 0)
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
 
   console.log("NotificationsDropdown mounted with:", {
     userId,
-    initialNotificationsCount: initialNotifications.length,
+    initialNotificationsCount: initialNotifications?.length || 0,
     initialUnreadCount,
   })
   
   console.log("Initial Notifications:", initialNotifications)
 
   useEffect(() => {
-    const supabase = createBrowserClient()
-    let isMounted = true
-    console.log("Setting up realtime subscription for user:", userId)
+    if (!userId) return
 
-    // Test if Realtime is connected
-    const channels = supabase.realtime.getChannels()
-    console.log("Realtime state:", {
-      channels: channels.length,
-      channelsState: channels.length ? channels.map(c => c.state) : 'no channels'
-    })
+    try {
+      const supabase = createBrowserClient()
+      let isMounted = true
+      console.log("Setting up realtime subscription for user:", userId)
 
-    // Subscribe to new notifications
-    const channel = supabase
-      .channel("notifications")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notifications",
-          filter: `user_id=eq.${userId}`,
-        },
-        (payload) => {
-          console.log("Received new notification:", payload)
-          if (isMounted) {
-          const newNotification = payload.new as Notification
-          setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
-          setUnreadCount((prev) => prev + 1)
-          }
-        },
-      )
-      .subscribe((status) => {
-        console.log("Realtime subscription status:", status)
+      // Test if Realtime is connected
+      const channels = supabase.realtime.getChannels()
+      console.log("Realtime state:", {
+        channels: channels.length,
+        channelsState: channels.length ? channels.map(c => c.state) : 'no channels'
       })
 
-    console.log("Realtime subscription activated, channel state:", channel.state)
+      // Subscribe to new notifications
+      const channel = supabase
+        .channel("notifications")
+        .on(
+          "postgres_changes",
+          {
+            event: "INSERT",
+            schema: "public",
+            table: "notifications",
+            filter: `user_id=eq.${userId}`,
+          },
+          (payload) => {
+            console.log("Received new notification:", payload)
+            if (isMounted && payload.new) {
+              const newNotification = {
+                ...payload.new,
+                type: payload.new.type || 'system',
+                link: payload.new.link || null,
+                is_read: payload.new.is_read || false,
+              } as Notification
+              setNotifications((prev) => [newNotification, ...prev].slice(0, 10))
+              setUnreadCount((prev) => prev + 1)
+            }
+          },
+        )
+        .subscribe((status) => {
+          console.log("Realtime subscription status:", status)
+        })
 
-    return () => {
-      console.log("Cleaning up realtime subscription")
-      isMounted = false
-      supabase.removeChannel(channel)
+      console.log("Realtime subscription activated, channel state:", channel.state)
+
+      return () => {
+        console.log("Cleaning up realtime subscription")
+        isMounted = false
+        supabase.removeChannel(channel)
+      }
+    } catch (error) {
+      console.error("Error setting up realtime subscription:", error)
     }
   }, [userId])
 

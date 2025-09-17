@@ -1,51 +1,57 @@
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ChevronLeft, Check } from "lucide-react"
-import { getUserNotifications, markAllNotificationsAsRead } from "@/app/actions/notifications"
+import { ChevronLeft } from "lucide-react"
+import { getUserNotifications } from "@/app/actions/notifications"
 import { getUser } from "@/app/actions/auth"
 import { redirect } from "next/navigation"
 import { formatDate } from "@/lib/utils"
 import { createServerClient } from "@/lib/supabase"
+import { MarkAllReadButton } from "@/components/mark-all-read-button"
 
 // Mark this page as dynamic
 export const dynamic = "force-dynamic"
 
 export default async function NotificationsPage() {
-  const user = await getUser()
+  try {
+    const user = await getUser()
 
-  if (!user) {
-    redirect("/login?redirect=/notifications")
-  }
+    if (!user) {
+      redirect("/login?redirect=/notifications")
+    }
 
-  const notifications = await getUserNotifications(50) // Get up to 50 notifications
+    const notifications = await getUserNotifications(50) // Get up to 50 notifications
 
-  // Проверяваме валидността на линковете към постове
-  const supabase = createServerClient()
-  const validatedNotifications = await Promise.all(
-    notifications.map(async (notification) => {
-      if (notification.link && notification.link.includes("/post/")) {
-        const match = notification.link.match(/\/post\/([^#]+)/)
-        if (match && match[1]) {
-          const slug = match[1]
+    // Проверяваме валидността на линковете към постове
+    const supabase = createServerClient()
+    const validatedNotifications = await Promise.all(
+      notifications.map(async (notification) => {
+        try {
+          if (notification.link && notification.link.includes("/post/")) {
+            const match = notification.link.match(/\/post\/([^#]+)/)
+            if (match && match[1]) {
+              const slug = match[1]
 
-          const { data, error } = await supabase.from("posts").select("id, title").eq("slug", slug).maybeSingle()
+              const { data, error } = await supabase.from("posts").select("id, title").eq("slug", slug).maybeSingle()
 
-          if (error || !data) {
-            // Ако постът не съществува, променяме линка към началната страница
-            return {
-              ...notification,
-              link: "/",
-              content: notification.content + " (Постът вече не съществува)",
+              if (error || !data) {
+                // Ако постът не съществува, променяме линка към началната страница
+                return {
+                  ...notification,
+                  link: "/",
+                  content: notification.content + " (Постът вече не съществува)",
+                }
+              }
             }
           }
+          return notification
+        } catch (error) {
+          console.error("Error validating notification link:", error)
+          return notification
         }
-      }
-      return notification
-    }),
-  )
+      }),
+    )
 
-  const getNotificationIcon = (type: string) => {
+  const getNotificationIcon = (type: string | undefined) => {
     switch (type) {
       case "comment":
         return "💬"
@@ -57,6 +63,8 @@ export default async function NotificationsPage() {
         return "🔖"
       case "follow":
         return "👤"
+      case "report":
+        return "🚩"
       default:
         return "🔔"
     }
@@ -76,14 +84,7 @@ export default async function NotificationsPage() {
               Stay updated with activity related to your posts and comments
             </p>
           </div>
-          <form action={async () => {
-            await markAllNotificationsAsRead();
-          }}>
-            <Button type="submit" variant="outline" size="sm" className="flex items-center gap-1">
-              <Check className="h-4 w-4" />
-              Mark all as read
-            </Button>
-          </form>
+          <MarkAllReadButton />
         </div>
       </div>
 
@@ -120,4 +121,25 @@ export default async function NotificationsPage() {
       </Card>
     </div>
   )
+  } catch (error) {
+    console.error("Error loading notifications page:", error)
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="mb-6">
+          <Link href="/" className="flex items-center text-muted-foreground hover:text-foreground mb-4">
+            <ChevronLeft className="h-4 w-4 mr-1" />
+            Back to forum
+          </Link>
+          <h1 className="text-3xl font-bold tracking-tight">Notifications</h1>
+        </div>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-center">
+              <p className="text-muted-foreground">Error loading notifications. Please try again later.</p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 }
