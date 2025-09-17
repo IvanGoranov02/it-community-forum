@@ -7,6 +7,7 @@ import { getUser } from "@/app/actions/auth"
 import { AuthHashHandler } from "@/components/auth-hash-handler"
 import { CookieConsent } from "@/components/cookie-consent"
 import { Analytics } from "@vercel/analytics/next"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import "./globals.css"
@@ -208,6 +209,7 @@ sum(42, 27); // 69
                 theme="colored"
               />
               <Analytics />
+              <SpeedInsights />
             </AuthProvider>
           </LoadingProvider>
         </ThemeProvider>
