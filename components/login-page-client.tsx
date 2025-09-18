@@ -13,8 +13,6 @@ interface LoginPageClientProps {
 }
 
 export function LoginPageClient({ user, redirectUrl, message, error }: LoginPageClientProps) {
-  console.log("LoginPageClient props:", { user: !!user, redirectUrl, message, error })
-  
   const router = useRouter()
   const [hasHashFragment, setHasHashFragment] = useState(false)
   const [isClient, setIsClient] = useState(false)

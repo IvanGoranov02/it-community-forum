@@ -16,13 +16,11 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const [loadingText, setLoadingText] = useState<string | undefined>(undefined)
 
   const startLoading = (text?: string) => {
-    console.log("LoadingProvider: Starting loading with text:", text)
     setLoadingText(text)
     setIsLoading(true)
   }
 
   const stopLoading = () => {
-    console.log("LoadingProvider: Stopping loading")
     setIsLoading(false)
     setLoadingText(undefined)
   }
@@ -30,8 +28,6 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   return (
     <LoadingContext.Provider value={{ isLoading, startLoading, stopLoading }}>
       {children}
-      {/* Temporarily disabled to fix stuck loading issue */}
-      {/* <LoadingOverlay isLoading={isLoading} text={loadingText} /> */}
     </LoadingContext.Provider>
   )
 }
