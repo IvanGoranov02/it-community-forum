@@ -45,13 +45,7 @@ export function NotificationsDropdown({
   const subscriptionRef = useRef<any>(null)
   const isSubscribedRef = useRef(false)
 
-  console.log("NotificationsDropdown mounted with:", {
-    userId,
-    initialNotificationsCount: initialNotifications?.length || 0,
-    initialUnreadCount,
-  })
-  
-  console.log("Initial Notifications:", initialNotifications)
+  // Component mounted
 
   useEffect(() => {
     if (!userId || isSubscribedRef.current) return
@@ -60,14 +54,6 @@ export function NotificationsDropdown({
       const supabase = createBrowserClient()
       let isMounted = true
       isSubscribedRef.current = true
-      console.log("Setting up realtime subscription for user:", userId)
-
-      // Test if Realtime is connected
-      const channels = supabase.realtime.getChannels()
-      console.log("Realtime state:", {
-        channels: channels.length,
-        channelsState: channels.length ? channels.map(c => c.state) : 'no channels'
-      })
 
       // Subscribe to new notifications
       const channel = supabase
@@ -81,7 +67,6 @@ export function NotificationsDropdown({
             filter: `user_id=eq.${userId}`,
           },
           (payload) => {
-            console.log("Received new notification:", payload)
             if (isMounted && payload.new) {
               const newNotification = {
                 ...payload.new,
@@ -94,15 +79,11 @@ export function NotificationsDropdown({
             }
           },
         )
-        .subscribe((status) => {
-          console.log("Realtime subscription status:", status)
-        })
+        .subscribe()
 
-      console.log("Realtime subscription activated, channel state:", channel.state)
       subscriptionRef.current = channel
 
       return () => {
-        console.log("Cleaning up realtime subscription")
         isMounted = false
         isSubscribedRef.current = false
         if (subscriptionRef.current) {

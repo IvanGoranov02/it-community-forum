@@ -1,7 +1,6 @@
 "use client"
 
-import { createContext, useContext, useState, type ReactNode } from "react"
-import { LoadingOverlay } from "@/components/ui/loading-overlay"
+import { createContext, useContext, type ReactNode } from "react"
 
 interface LoadingContextType {
   isLoading: boolean
@@ -12,21 +11,17 @@ interface LoadingContextType {
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined)
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
-  const [isLoading, setIsLoading] = useState(false)
-  const [loadingText, setLoadingText] = useState<string | undefined>(undefined)
-
+  // Dummy loading functions - no actual loading overlay
   const startLoading = (text?: string) => {
-    setLoadingText(text)
-    setIsLoading(true)
+    // Do nothing - loading overlay is disabled
   }
 
   const stopLoading = () => {
-    setIsLoading(false)
-    setLoadingText(undefined)
+    // Do nothing - loading overlay is disabled  
   }
 
   return (
-    <LoadingContext.Provider value={{ isLoading, startLoading, stopLoading }}>
+    <LoadingContext.Provider value={{ isLoading: false, startLoading, stopLoading }}>
       {children}
     </LoadingContext.Provider>
   )
