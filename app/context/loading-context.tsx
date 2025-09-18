@@ -23,6 +23,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   return (
     <LoadingContext.Provider value={{ isLoading: false, startLoading, stopLoading }}>
       {children}
+      {/* LoadingOverlay permanently disabled to prevent stuck loading screens */}
     </LoadingContext.Provider>
   )
 }

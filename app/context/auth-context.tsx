@@ -20,7 +20,8 @@ const AuthContext = createContext<AuthContextType>({ user: null, isLoading: true
 
 export function AuthProvider({ children, initialUser }: { children: ReactNode; initialUser: User }) {
   const [user, setUser] = useState<User>(initialUser)
-  const [isLoading, setIsLoading] = useState(initialUser === null)
+  // Always false since we handle auth loading in LoginPageClient
+  const [isLoading, setIsLoading] = useState(false)
 
   return <AuthContext.Provider value={{ user, isLoading }}>{children}</AuthContext.Provider>
 }
