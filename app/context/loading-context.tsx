@@ -30,7 +30,8 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   return (
     <LoadingContext.Provider value={{ isLoading, startLoading, stopLoading }}>
       {children}
-      <LoadingOverlay isLoading={isLoading} text={loadingText} />
+      {/* Temporarily disabled to fix stuck loading issue */}
+      {/* <LoadingOverlay isLoading={isLoading} text={loadingText} /> */}
     </LoadingContext.Provider>
   )
 }

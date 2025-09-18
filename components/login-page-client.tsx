@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { LoginForm } from "@/components/login-form"
+import { createBrowserClient } from "@/lib/supabase"
 
 interface LoginPageClientProps {
   user: any
@@ -18,23 +19,46 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   const [hasHashFragment, setHasHashFragment] = useState(false)
   const [isClient, setIsClient] = useState(false)
   const [hasRedirected, setHasRedirected] = useState(false)
+  const [clientUser, setClientUser] = useState<any>(null)
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true)
 
   useEffect(() => {
     setIsClient(true)
     setHasHashFragment(!!window.location.hash)
+    
+    // Check client-side authentication
+    const checkClientAuth = async () => {
+      try {
+        const supabase = createBrowserClient()
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        console.log("Client-side auth check:", { authUser: !!authUser })
+        setClientUser(authUser)
+      } catch (error) {
+        console.error("Error checking client auth:", error)
+        setClientUser(null)
+      } finally {
+        setIsCheckingAuth(false)
+      }
+    }
+    
+    checkClientAuth()
   }, [])
 
   useEffect(() => {
+    const effectiveUser = user || clientUser
     console.log("LoginPageClient redirect check:", {
       isClient,
-      user: !!user,
+      serverUser: !!user,
+      clientUser: !!clientUser,
+      effectiveUser: !!effectiveUser,
       hasHashFragment,
       hasRedirected,
-      redirectUrl
+      redirectUrl,
+      isCheckingAuth
     })
     
     // Only redirect if user is logged in, there's no hash fragment, and we haven't already redirected
-    if (isClient && user && !hasHashFragment && !hasRedirected) {
+    if (isClient && effectiveUser && !hasHashFragment && !hasRedirected && !isCheckingAuth) {
       console.log("User already logged in, redirecting to:", redirectUrl)
       setHasRedirected(true)
       
@@ -43,7 +67,7 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
         window.location.href = redirectUrl
       }, 100)
     }
-  }, [user, redirectUrl, router, hasHashFragment, isClient, hasRedirected])
+  }, [user, clientUser, redirectUrl, router, hasHashFragment, isClient, hasRedirected, isCheckingAuth])
 
   // Prevent hydration mismatch by not rendering different content on server vs client
   if (!isClient) {
@@ -51,8 +75,24 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
     return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
   }
 
+  // Show loading while checking authentication
+  if (isCheckingAuth) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="animate-pulse">
+          <div className="h-4 bg-muted rounded w-48 mx-auto mb-2"></div>
+          <div className="h-3 bg-muted rounded w-32 mx-auto"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          Checking authentication...
+        </p>
+      </div>
+    )
+  }
+
   // If user is logged in, show a simple loading message instead of the form
-  if (user && !hasHashFragment) {
+  const effectiveUser = user || clientUser
+  if (effectiveUser && !hasHashFragment) {
     return (
       <div className="text-center space-y-4">
         <div className="animate-pulse">
@@ -67,7 +107,7 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   }
 
   // Show loading while processing OAuth tokens
-  if (user && hasHashFragment) {
+  if (effectiveUser && hasHashFragment) {
     console.log("User logged in but processing OAuth tokens...")
     return (
       <div className="text-center space-y-4">
