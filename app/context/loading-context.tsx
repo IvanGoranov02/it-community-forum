@@ -16,11 +16,14 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
   const [loadingText, setLoadingText] = useState<string | undefined>(undefined)
 
   const startLoading = (text?: string) => {
+    console.log("LoadingProvider: Starting loading with text:", text)
+    console.trace("LoadingProvider: startLoading called from:")
     setLoadingText(text)
     setIsLoading(true)
   }
 
   const stopLoading = () => {
+    console.log("LoadingProvider: Stopping loading")
     setIsLoading(false)
     setLoadingText(undefined)
   }

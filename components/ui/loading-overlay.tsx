@@ -6,6 +6,8 @@ interface LoadingOverlayProps {
 }
 
 export function LoadingOverlay({ isLoading, text }: LoadingOverlayProps) {
+  console.log("LoadingOverlay render:", { isLoading, text })
+  
   if (!isLoading) return null
 
   return (

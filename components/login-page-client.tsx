@@ -12,6 +12,8 @@ interface LoginPageClientProps {
 }
 
 export function LoginPageClient({ user, redirectUrl, message, error }: LoginPageClientProps) {
+  console.log("LoginPageClient props:", { user: !!user, redirectUrl, message, error })
+  
   const router = useRouter()
   const [hasHashFragment, setHasHashFragment] = useState(false)
   const [isClient, setIsClient] = useState(false)
@@ -23,6 +25,14 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   }, [])
 
   useEffect(() => {
+    console.log("LoginPageClient redirect check:", {
+      isClient,
+      user: !!user,
+      hasHashFragment,
+      hasRedirected,
+      redirectUrl
+    })
+    
     // Only redirect if user is logged in, there's no hash fragment, and we haven't already redirected
     if (isClient && user && !hasHashFragment && !hasRedirected) {
       console.log("User already logged in, redirecting to:", redirectUrl)
