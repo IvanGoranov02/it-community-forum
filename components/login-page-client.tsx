@@ -29,10 +29,8 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
       try {
         const supabase = createBrowserClient()
         const { data: { user: authUser } } = await supabase.auth.getUser()
-        console.log("Client-side auth check:", { authUser: !!authUser })
         setClientUser(authUser)
       } catch (error) {
-        console.error("Error checking client auth:", error)
         setClientUser(null)
       } finally {
         setIsCheckingAuth(false)
@@ -44,20 +42,9 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
 
   useEffect(() => {
     const effectiveUser = user || clientUser
-    console.log("LoginPageClient redirect check:", {
-      isClient,
-      serverUser: !!user,
-      clientUser: !!clientUser,
-      effectiveUser: !!effectiveUser,
-      hasHashFragment,
-      hasRedirected,
-      redirectUrl,
-      isCheckingAuth
-    })
     
     // Only redirect if user is logged in, there's no hash fragment, and we haven't already redirected
     if (isClient && effectiveUser && !hasHashFragment && !hasRedirected && !isCheckingAuth) {
-      console.log("User already logged in, redirecting to:", redirectUrl)
       setHasRedirected(true)
       
       // Use a more reliable redirect method
@@ -106,7 +93,6 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
 
   // Show loading while processing OAuth tokens
   if (effectiveUser && hasHashFragment) {
-    console.log("User logged in but processing OAuth tokens...")
     return (
       <div className="text-center space-y-4">
         <div className="animate-pulse">
