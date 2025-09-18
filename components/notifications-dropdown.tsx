@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -42,6 +42,8 @@ export function NotificationsDropdown({
   const [unreadCount, setUnreadCount] = useState(initialUnreadCount || 0)
   const [isOpen, setIsOpen] = useState(false)
   const router = useRouter()
+  const subscriptionRef = useRef<any>(null)
+  const isSubscribedRef = useRef(false)
 
   console.log("NotificationsDropdown mounted with:", {
     userId,
@@ -52,11 +54,12 @@ export function NotificationsDropdown({
   console.log("Initial Notifications:", initialNotifications)
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId || isSubscribedRef.current) return
 
     try {
       const supabase = createBrowserClient()
       let isMounted = true
+      isSubscribedRef.current = true
       console.log("Setting up realtime subscription for user:", userId)
 
       // Test if Realtime is connected
@@ -96,11 +99,16 @@ export function NotificationsDropdown({
         })
 
       console.log("Realtime subscription activated, channel state:", channel.state)
+      subscriptionRef.current = channel
 
       return () => {
         console.log("Cleaning up realtime subscription")
         isMounted = false
-        supabase.removeChannel(channel)
+        isSubscribedRef.current = false
+        if (subscriptionRef.current) {
+          supabase.removeChannel(subscriptionRef.current)
+          subscriptionRef.current = null
+        }
       }
     } catch (error) {
       console.error("Error setting up realtime subscription:", error)

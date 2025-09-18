@@ -15,6 +15,7 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   const router = useRouter()
   const [hasHashFragment, setHasHashFragment] = useState(false)
   const [isClient, setIsClient] = useState(false)
+  const [hasRedirected, setHasRedirected] = useState(false)
 
   useEffect(() => {
     setIsClient(true)
@@ -22,15 +23,22 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   }, [])
 
   useEffect(() => {
-    // Only redirect if user is logged in and there's no hash fragment (OAuth tokens)
-    if (isClient && user && !hasHashFragment) {
+    // Only redirect if user is logged in, there's no hash fragment, and we haven't already redirected
+    if (isClient && user && !hasHashFragment && !hasRedirected) {
       console.log("User already logged in, redirecting to:", redirectUrl)
+      setHasRedirected(true)
       router.push(redirectUrl)
     }
-  }, [user, redirectUrl, router, hasHashFragment, isClient])
+  }, [user, redirectUrl, router, hasHashFragment, isClient, hasRedirected])
+
+  // Prevent hydration mismatch by not rendering different content on server vs client
+  if (!isClient) {
+    // Server-side: always render the login form to prevent hydration mismatch
+    return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
+  }
 
   // Show loading while processing OAuth tokens
-  if (isClient && user && hasHashFragment) {
+  if (user && hasHashFragment) {
     console.log("User logged in but processing OAuth tokens...")
     return (
       <div className="text-center space-y-4">

@@ -20,14 +20,14 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 export default function NewPostPage() {
   const [categories, setCategories] = useState([])
   const [tags, setTags] = useState([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isDataLoading, setIsDataLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [selectedTags, setSelectedTags] = useState([])
   const router = useRouter()
-  const { user } = useAuth()
+  const { user, isLoading } = useAuth()
 
   useEffect(() => {
-    // Redirect if not logged in
+    // Redirect if not logged in, but only after auth context has loaded
     if (!user && !isLoading) {
       router.push("/login?redirect=/new-post")
     }
@@ -35,7 +35,7 @@ export default function NewPostPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      setIsLoading(true)
+      setIsDataLoading(true)
       try {
         const supabase = createBrowserClient()
 
@@ -79,7 +79,7 @@ export default function NewPostPage() {
           variant: "destructive",
         })
       } finally {
-        setIsLoading(false)
+        setIsDataLoading(false)
       }
     }
 
@@ -125,7 +125,7 @@ export default function NewPostPage() {
     }
   }
 
-  if (isLoading) {
+  if (isLoading || isDataLoading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center">

@@ -38,9 +38,11 @@ export function AuthHashHandler() {
     console.log("Current URL:", window.location.href)
     console.log("Hash fragment:", window.location.hash)
 
+    // Mark as processed immediately to prevent re-runs
+    setHasProcessed(true)
+
     // Check if there's a hash fragment in the URL
     if (window.location.hash) {
-      setHasProcessed(true) // Mark as processed to prevent re-runs
       setIsProcessing(true)
       
       const handleHashParams = async () => {
