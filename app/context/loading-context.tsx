@@ -17,7 +17,6 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 
   const startLoading = (text?: string) => {
     console.log("LoadingProvider: Starting loading with text:", text)
-    console.trace("LoadingProvider: startLoading called from:")
     setLoadingText(text)
     setIsLoading(true)
   }

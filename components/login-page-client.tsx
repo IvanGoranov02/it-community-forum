@@ -37,7 +37,11 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
     if (isClient && user && !hasHashFragment && !hasRedirected) {
       console.log("User already logged in, redirecting to:", redirectUrl)
       setHasRedirected(true)
-      router.push(redirectUrl)
+      
+      // Use a more reliable redirect method
+      setTimeout(() => {
+        window.location.href = redirectUrl
+      }, 100)
     }
   }, [user, redirectUrl, router, hasHashFragment, isClient, hasRedirected])
 
@@ -45,6 +49,21 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
   if (!isClient) {
     // Server-side: always render the login form to prevent hydration mismatch
     return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
+  }
+
+  // If user is logged in, show a simple loading message instead of the form
+  if (user && !hasHashFragment) {
+    return (
+      <div className="text-center space-y-4">
+        <div className="animate-pulse">
+          <div className="h-4 bg-muted rounded w-48 mx-auto mb-2"></div>
+          <div className="h-3 bg-muted rounded w-32 mx-auto"></div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          You are already logged in. Redirecting...
+        </p>
+      </div>
+    )
   }
 
   // Show loading while processing OAuth tokens
