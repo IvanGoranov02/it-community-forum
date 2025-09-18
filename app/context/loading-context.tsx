@@ -1,6 +1,7 @@
 "use client"
 
-import { createContext, useContext, type ReactNode } from "react"
+import { createContext, useContext, useState, type ReactNode } from "react"
+import { LoadingOverlay } from "@/components/ui/loading-overlay"
 
 interface LoadingContextType {
   isLoading: boolean
@@ -11,19 +12,35 @@ interface LoadingContextType {
 const LoadingContext = createContext<LoadingContextType | undefined>(undefined)
 
 export function LoadingProvider({ children }: { children: ReactNode }) {
-  // Dummy loading functions - no actual loading overlay
+  const [isLoading, setIsLoading] = useState(false)
+  const [loadingText, setLoadingText] = useState<string | undefined>(undefined)
+
+  // Only allow loading for post creation and similar important operations
+  const allowedLoadingTexts = [
+    "Creating post...",
+    "Updating post...",
+    "Deleting post...",
+    "Uploading image...",
+  ]
+
   const startLoading = (text?: string) => {
-    // Do nothing - loading overlay is disabled
+    setLoadingText(text)
+    setIsLoading(true)
   }
 
   const stopLoading = () => {
-    // Do nothing - loading overlay is disabled  
+    setIsLoading(false)
+    setLoadingText(undefined)
   }
 
   return (
-    <LoadingContext.Provider value={{ isLoading: false, startLoading, stopLoading }}>
+    <LoadingContext.Provider value={{ isLoading, startLoading, stopLoading }}>
       {children}
-      {/* LoadingOverlay permanently disabled to prevent stuck loading screens */}
+      <LoadingOverlay 
+        isLoading={isLoading} 
+        text={loadingText} 
+        allowedTexts={allowedLoadingTexts}
+      />
     </LoadingContext.Provider>
   )
 }

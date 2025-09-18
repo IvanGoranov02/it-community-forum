@@ -47,10 +47,8 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
     if (isClient && effectiveUser && !hasHashFragment && !hasRedirected && !isCheckingAuth) {
       setHasRedirected(true)
       
-      // Use a more reliable redirect method
-      setTimeout(() => {
-        window.location.href = redirectUrl
-      }, 100)
+      // Use immediate redirect
+      window.location.href = redirectUrl
     }
   }, [user, clientUser, redirectUrl, router, hasHashFragment, isClient, hasRedirected, isCheckingAuth])
 
@@ -60,7 +58,13 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
     return <LoginForm redirectUrl={redirectUrl} message={message} error={error} />
   }
 
-  // Show loading while checking authentication
+  // If user is logged in, redirect immediately without showing anything
+  const effectiveUser = user || clientUser
+  if (effectiveUser && !hasHashFragment && !isCheckingAuth) {
+    return null // Don't show anything, just redirect
+  }
+
+  // Show minimal loading only while checking auth
   if (isCheckingAuth) {
     return (
       <div className="text-center space-y-4">
@@ -68,25 +72,6 @@ export function LoginPageClient({ user, redirectUrl, message, error }: LoginPage
           <div className="h-4 bg-muted rounded w-48 mx-auto mb-2"></div>
           <div className="h-3 bg-muted rounded w-32 mx-auto"></div>
         </div>
-        <p className="text-sm text-muted-foreground">
-          Checking authentication...
-        </p>
-      </div>
-    )
-  }
-
-  // If user is logged in, show a simple loading message instead of the form
-  const effectiveUser = user || clientUser
-  if (effectiveUser && !hasHashFragment) {
-    return (
-      <div className="text-center space-y-4">
-        <div className="animate-pulse">
-          <div className="h-4 bg-muted rounded w-48 mx-auto mb-2"></div>
-          <div className="h-3 bg-muted rounded w-32 mx-auto"></div>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          You are already logged in. Redirecting...
-        </p>
       </div>
     )
   }

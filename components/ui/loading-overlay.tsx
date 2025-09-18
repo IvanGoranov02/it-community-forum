@@ -3,9 +3,21 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner"
 interface LoadingOverlayProps {
   isLoading: boolean
   text?: string
+  allowedTexts?: string[] // Only show loading for these specific texts
 }
 
-export function LoadingOverlay({ isLoading, text }: LoadingOverlayProps) {
-  // DISABLED: Always return null to prevent stuck loading screens
-  return null
+export function LoadingOverlay({ isLoading, text, allowedTexts = [] }: LoadingOverlayProps) {
+  // Only show loading for specific allowed texts (like post creation)
+  if (!isLoading || !text || (allowedTexts.length > 0 && !allowedTexts.includes(text))) {
+    return null
+  }
+
+  return (
+    <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
+      <div className="flex flex-col items-center gap-4 p-6 bg-background rounded-lg shadow-lg">
+        <LoadingSpinner size="lg" />
+        {text && <p className="text-lg font-medium">{text}</p>}
+      </div>
+    </div>
+  )
 }

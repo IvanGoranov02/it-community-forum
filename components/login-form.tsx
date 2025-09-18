@@ -35,7 +35,7 @@ export function LoginForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    startLoading("Login...")
+    // Simple login without global loading
     setErrorMessage("")
     setDebugInfo(null)
 
@@ -78,7 +78,7 @@ export function LoginForm({
         }
 
         setDebugInfo({ clientError: authError })
-        stopLoading()
+        // No global loading
         return
       }
 
@@ -125,8 +125,6 @@ export function LoginForm({
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      stopLoading()
     }
   }
 
@@ -140,7 +138,7 @@ export function LoginForm({
       return
     }
 
-    startLoading("Изпращане на имейл за потвърждение...")
+    // Simple email sending without global loading
     try {
       const supabase = createBrowserClient()
 
@@ -173,8 +171,6 @@ export function LoginForm({
         description: "Failed to resend confirmation email.",
         variant: "destructive",
       })
-    } finally {
-      stopLoading()
     }
   }
 
@@ -208,7 +204,7 @@ export function LoginForm({
 
   // OAuth login handler
   const handleOAuthLogin = async (provider: 'google' | 'github') => {
-    startLoading(`Login with ${provider === 'google' ? 'Google' : 'GitHub'}...`)
+    // Simple OAuth without global loading
     setErrorMessage("")
 
     try {
@@ -242,8 +238,6 @@ export function LoginForm({
         description: "An unexpected error occurred. Please try again.",
         variant: "destructive",
       })
-    } finally {
-      stopLoading()
     }
   }
 
